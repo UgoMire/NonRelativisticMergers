@@ -3,6 +3,10 @@ uuid = "71ee8c2b-14ac-446f-890d-4b8e771f3ed8"
 authors = ["UgoMire <ugomire@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+
 [compat]
 julia = "1.10"
 
