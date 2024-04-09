@@ -47,11 +47,11 @@ function solveup(gd::Grid1D, model::Euler1D, tspan)
 
     sol = solve(
         prob,
-        Tsit5(),
+        # Tsit5(),
         # TRBDF2(),
         # QNDF(autodiff = false),
-        abstol = 1e-8,
-        reltol = 1e-8,
+        abstol = 1e-12,
+        reltol = 1e-12,
         progress = true,
         progress_steps = 500,
     )
