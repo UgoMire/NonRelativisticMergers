@@ -73,26 +73,45 @@ end
 function reconstruct(method::KT, gd, u)
     θ = method.θ
     w_reconstruct = zeros(3, gd.Nx, 2)
+    γ = 5 / 3
 
-    for j = 1:3, i = 1:gd.Nx
+    for i = 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
         im = i == 1 ? gd.Nx : i - 1
 
-        w_reconstruct[j, i, 1] =
-            u[j, i] -
-            minmod(
-                θ * (u[j, i] - u[j, im]) / gd.Δx,
-                (u[j, ip] - u[j, im]) / 2gd.Δx,
-                θ * (u[j, ip] - u[j, i]) / gd.Δx,
-            ) * gd.Δx / 2
+        # Reconstruct the density.
+        rho = u[1, i]
+        rhop = u[1, ip]
+        rhom = u[1, im]
 
-        w_reconstruct[j, i, 2] =
-            u[j, i] +
-            minmod(
-                θ * (u[j, i] - u[j, im]) / gd.Δx,
-                (u[j, ip] - u[j, im]) / 2gd.Δx,
-                θ * (u[j, ip] - u[j, i]) / gd.Δx,
-            ) * gd.Δx / 2
+        Drho = minmod(
+            θ * (rho - rhom) / gd.Δx,
+            (rhop - rhom) / 2gd.Δx,
+            θ * (rhop - rho) / gd.Δx,
+        )
+
+        w_reconstruct[1, i, 1] = rho - Drho * gd.Δx / 2
+        w_reconstruct[1, i, 2] = rho + Drho * gd.Δx / 2
+
+        # Reconstruct the velocity.
+        v = u[2, i] / u[1, i]
+        vp = u[2, ip] / u[1, ip]
+        vm = u[2, im] / u[1, im]
+
+        Dv = minmod(θ * (v - vm) / gd.Δx, (vp - vm) / 2gd.Δx, θ * (vp - v) / gd.Δx)
+
+        w_reconstruct[2, i, 1] = v - Dv * gd.Δx / 2
+        w_reconstruct[2, i, 2] = v + Dv * gd.Δx / 2
+
+        # Reconstruct the pressure.
+        p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
+        pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
+        pm = (γ - 1) * (u[3, im] - 1 / 2 * u[1, im] * u[2, im]^2)
+
+        Dp = minmod(θ * (p - pm) / gd.Δx, (pp - pm) / 2gd.Δx, θ * (pp - p) / gd.Δx)
+
+        w_reconstruct[3, i, 1] = p - Dp * gd.Δx / 2
+        w_reconstruct[3, i, 2] = p + Dp * gd.Δx / 2
     end
 
     return w_reconstruct

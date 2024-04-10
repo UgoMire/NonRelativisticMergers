@@ -7,17 +7,22 @@ function plot_euler(sol, gd)
     sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
     tlift = sg.sliders[1].value
 
-    ax1 = Axis(fig[1, 1])
+    ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x")
     lines!(ax1, gd.xl, u0[1, :])
     lines!(ax1, gd.xl, (@lift sol($tlift)[1, :]))
 
-    ax2 = Axis(fig[1, 2])
-    lines!(ax2, gd.xl, u0[2, :])
-    lines!(ax2, gd.xl, (@lift sol($tlift)[2, :]))
+    ax2 = Axis(fig[1, 2]; title = "velocity", xlabel = "x")
+    lines!(ax2, gd.xl, u0[2, :] ./ u0[1, :])
+    lines!(ax2, gd.xl, (@lift sol($tlift)[2, :] ./ sol($tlift)[1, :]))
 
-    ax3 = Axis(fig[1, 3])
-    lines!(ax3, gd.xl, u0[3, :])
-    lines!(ax3, gd.xl, (@lift sol($tlift)[3, :]))
+    ax3 = Axis(fig[1, 3]; title = "pressure", xlabel = "x")
+    lines!(ax3, gd.xl, (5 / 3 - 1) * (u0[3, :] .- 1 / 2 * u0[1, :] .* u0[2, :] .^ 2))
+    lines!(
+        ax3,
+        gd.xl,
+        (@lift (5 / 3 - 1) *
+               (sol($tlift)[3, :] .- 1 / 2 * sol($tlift)[1, :] .* sol($tlift)[2, :] .^ 2)),
+    )
 
     on(tlift) do val
         autolimits!(ax1)
@@ -33,9 +38,9 @@ function plot_reconstruction(gd, model, u0)
 
     fig = Figure(size = (1200, 400))
 
-    ax1 = Axis(fig[1, 1])
-    ax2 = Axis(fig[1, 2])
-    ax3 = Axis(fig[1, 3])
+    ax1 = Axis(fig[1, 1]; title = "density")
+    ax2 = Axis(fig[1, 2]; title = "velocity")
+    ax3 = Axis(fig[1, 3]; title = "pressure")
 
     for i = 1:gd.Nx, (ax, j) in zip([ax1, ax2, ax3], 1:3)
         lines!(
