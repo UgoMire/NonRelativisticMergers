@@ -4,26 +4,19 @@ struct NaiveRS <: RiemannSolver end
 struct HLLC <: RiemannSolver end
 struct Roe <: RiemannSolver end
 
-function solve_riemann(method::NaiveRS, gd, w_reconstruct)
-    Fl = zeros(3, gd.Nx)
-
-    for i = 1:gd.Nx
+function solve_riemann_problem!(fluxstore, method::NaiveRS, model, gd, wstore)
+    for j = 1:3, i = 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
 
-        Fminus =
-            flux(w_reconstruct[1, i, 2], w_reconstruct[2, i, 2], w_reconstruct[3, i, 2])
-        Fplus =
-            flux(w_reconstruct[1, ip, 1], w_reconstruct[2, ip, 1], w_reconstruct[3, ip, 1])
+        Fminux = flux(model, j, wstore[1, i, 2], wstore[2, i, 2], wstore[3, i, 2])
+        Fplus = flux(model, j, wstore[1, ip, 1], wstore[2, ip, 1], wstore[3, ip, 1])
 
-        @. Fl[:, i] = 1 / 2 * (Fplus + Fminus)
-        # @. Fl[:, i] = Fminus
+        fluxstore[j, i] = 1 / 2 * (Fminux + Fplus)
     end
-
-    return Fl
 end
 
-function hllc_wavespeed_estimate(rhoL, vL, pL, rhoR, vR, pR)
-    γ = 5 / 3
+function hllc_wavespeed_estimate(model, rhoL, vL, pL, rhoR, vR, pR)
+    γ = model.γ
 
     cL = sqrt(γ * pL / rhoL)
     cR = sqrt(γ * pR / rhoR)
@@ -46,15 +39,15 @@ function hllc_wavespeed_estimate(rhoL, vL, pL, rhoR, vR, pR)
     return (; SL, SR, SM)
 end
 
-function hllc_riemann_solver(rhoL, vL, pL, rhoR, vR, pR)
-    (; SL, SR, SM) = hllc_wavespeed_estimate(rhoL, vL, pL, rhoR, vR, pR)
-    γ = 5 / 3
+function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
+    (; SL, SR, SM) = hllc_wavespeed_estimate(model, rhoL, vL, pL, rhoR, vR, pR)
+    γ = model.γ
 
     if 0 < SL
-        FL = flux(rhoL, vL, pL)
+        FL = flux(model, rhoL, vL, pL)
         return FL
     elseif SL <= 0 < SM
-        FL = flux(rhoL, vL, pL)
+        FL = flux(model, rhoL, vL, pL)
         EL = pL / (γ - 1) + 1 / 2 * rhoL * vL^2
 
         UL = [rhoL, rhoL * vL, EL]
@@ -70,7 +63,7 @@ function hllc_riemann_solver(rhoL, vL, pL, rhoR, vR, pR)
         FLstar = FL + SL * (ULstar - UL)
         return FLstar
     elseif SM <= 0 <= SR
-        FR = flux(rhoR, vR, pR)
+        FR = flux(model, rhoR, vR, pR)
         ER = pR / (γ - 1) + 1 / 2 * rhoR * vR^2
 
         UR = [rhoR, rhoR * vR, ER]
@@ -86,13 +79,12 @@ function hllc_riemann_solver(rhoL, vL, pL, rhoR, vR, pR)
         FRstar = FR + SR * (URstar - UR)
         return FRstar
     elseif SR < 0
-        FR = flux(rhoR, vR, pR)
+        FR = flux(model, rhoR, vR, pR)
         return FR
     end
 end
 
-function solve_riemann(method::HLLC, gd, w_reconstruct)
-    Fl = zeros(3, gd.Nx)
+function solve_riemann_problem!(fluxstore, method::HLLC, model, gd, w_reconstruct)
 
     for i = 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
@@ -105,10 +97,6 @@ function solve_riemann(method::HLLC, gd, w_reconstruct)
         vR = w_reconstruct[2, ip, 1]
         pR = w_reconstruct[3, ip, 1]
 
-        F = hllc_riemann_solver(rhoL, vL, pL, rhoR, vR, pR)
-
-        @. Fl[:, i] = F
+        fluxstore[:, i] .= hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
     end
-
-    return Fl
 end

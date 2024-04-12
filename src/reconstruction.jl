@@ -15,11 +15,31 @@ end
 function reconstruct(method::Constant, gd, u)
     w_reconstruct = zeros(3, gd.Nx, 2)
 
+    γ = 5 / 3
+
     for i = 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
 
-        w_reconstruct[:, i, 1] = u[:, i]
-        w_reconstruct[:, i, 2] = u[:, ip]
+        # Reconstruct the density.
+        rho = u[1, i]
+        rhop = u[1, ip]
+
+        w_reconstruct[1, i, 1] = rho
+        w_reconstruct[1, i, 2] = rhop
+
+        # Reconstruct the velocity.
+        v = u[2, i] / u[1, i]
+        vp = u[2, ip] / u[1, ip]
+
+        w_reconstruct[2, i, 1] = v
+        w_reconstruct[2, i, 2] = vp
+
+        # Reconstruct the pressure.
+        p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
+        pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
+
+        w_reconstruct[3, i, 1] = p
+        w_reconstruct[3, i, 2] = pp
     end
 
     return w_reconstruct
@@ -70,9 +90,8 @@ function minmod(a1, a2, a3)
     end
 end
 
-function reconstruct(method::KT, gd, u)
+function reconstruct!(w_store, method::KT, gd, u)
     θ = method.θ
-    w_reconstruct = zeros(3, gd.Nx, 2)
     γ = 5 / 3
 
     for i = 1:gd.Nx
@@ -90,8 +109,8 @@ function reconstruct(method::KT, gd, u)
             θ * (rhop - rho) / gd.Δx,
         )
 
-        w_reconstruct[1, i, 1] = rho - Drho * gd.Δx / 2
-        w_reconstruct[1, i, 2] = rho + Drho * gd.Δx / 2
+        w_store[1, i, 1] = rho - Drho * gd.Δx / 2
+        w_store[1, i, 2] = rho + Drho * gd.Δx / 2
 
         # Reconstruct the velocity.
         v = u[2, i] / u[1, i]
@@ -100,8 +119,8 @@ function reconstruct(method::KT, gd, u)
 
         Dv = minmod(θ * (v - vm) / gd.Δx, (vp - vm) / 2gd.Δx, θ * (vp - v) / gd.Δx)
 
-        w_reconstruct[2, i, 1] = v - Dv * gd.Δx / 2
-        w_reconstruct[2, i, 2] = v + Dv * gd.Δx / 2
+        w_store[2, i, 1] = v - Dv * gd.Δx / 2
+        w_store[2, i, 2] = v + Dv * gd.Δx / 2
 
         # Reconstruct the pressure.
         p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
@@ -110,9 +129,7 @@ function reconstruct(method::KT, gd, u)
 
         Dp = minmod(θ * (p - pm) / gd.Δx, (pp - pm) / 2gd.Δx, θ * (pp - p) / gd.Δx)
 
-        w_reconstruct[3, i, 1] = p - Dp * gd.Δx / 2
-        w_reconstruct[3, i, 2] = p + Dp * gd.Δx / 2
+        w_store[3, i, 1] = p - Dp * gd.Δx / 2
+        w_store[3, i, 2] = p + Dp * gd.Δx / 2
     end
-
-    return w_reconstruct
 end

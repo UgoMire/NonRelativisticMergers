@@ -4,11 +4,11 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid1D(; xmin = 0, xmax = 1, Nx = 100)
+gd = Grid1D(; xmin = -1, xmax = 2, Nx = 300)
 
 # ρ0l = ones(gd.Nx)
-# ρ0l = 0.1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
-ρ0l = [0.4 < x < 0.6 ? 0.1 : 0.01 for x in gd.xl]
+ρ0l = 0.1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+# ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.01 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
 # v0l = ones(gd.Nx)
@@ -16,22 +16,23 @@ v0l = zeros(gd.Nx)
 
 # p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
-# p0l = 0.1 .+ map(x -> 0.2 * exp(-100 * (x - 0.5)^2), gd.xl)
-p0l = [0.4 < x < 0.6 ? 0.1 : 0.01 for x in gd.xl]
+# p0l = map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+p0l = 0.1 .+ map(x -> 0.4 * exp(-100 * (x - 0.5)^2), gd.xl)
+# p0l = [0.4 < x < 0.6 ? 2 : 0.01 for x in gd.xl]
 
-tspan = (0, 0.5)
+tspan = (0, 0.051)
 
 # reconst = Constant()
 # reconst = MUSCL()
 reconst = KT()
 
-# riemannsolver = NaiveRS()
-riemannsolver = HLLC()
+riemannsolver = NaiveRS()
+# riemannsolver = HLLC()
 
 # model = Euler1D(Constant(), NaiveRS(), ρ0l, v0l, p0l)
-model = Euler1D(ρ0l, v0l, p0l; reconst, riemannsolver)
+model = Euler1D(; reconst, riemannsolver)
 
-sol = solveup(gd, model, tspan)
+sol = solveup(ρ0l, v0l, p0l, gd, model, tspan)
 
 plot_euler(sol, gd)
 
@@ -43,3 +44,34 @@ u0[3, :] = p0l
 u0 = sol.u[end]
 
 plot_reconstruction(gd, model, u0)
+
+##
+# reconst = Constant()
+# reconst = MUSCL()
+reconst = KT()
+
+# riemannsolver = NaiveRS()
+riemannsolver = HLLC()
+
+model = Euler1D(; reconst, riemannsolver)
+
+u0 = zeros(3, gd.Nx)
+
+γ = 5 / 3
+
+@. u0[1, :] = ρ0l
+@. u0[2, :] = v0l * ρ0l
+@. u0[3, :] = p0l / (γ - 1) + 1 / 2 * ρ0l * v0l^2
+
+du = copy(u0)
+wstore = zeros(3, gd.Nx, 2)
+fluxstore = zeros(3, gd.Nx)
+
+@btime NonRelativisticMergers.euler1d!(du, u0, (; gd, model, wstore, fluxstore), tspan[1])
+##
+@code_warntype NonRelativisticMergers.euler1d!(
+    du,
+    u0,
+    (; gd, model, wstore, fluxstore),
+    tspan[1],
+)
