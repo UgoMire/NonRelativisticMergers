@@ -1,7 +1,7 @@
 module NonRelativisticMergers
 
-using DifferentialEquations
 using Makie
+using OrdinaryDiffEq
 using PreallocationTools
 
 export FDProblem

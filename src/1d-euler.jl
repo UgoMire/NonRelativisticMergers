@@ -37,7 +37,7 @@ function solve(prob::FDProblem{<:Any,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
 
     prob = ODEProblem(euler1d!, u0, tspan, (; prob, wstore, fluxstore))
 
-    sol = DifferentialEquations.solve(
+    sol = OrdinaryDiffEq.solve(
         prob,
         Tsit5();
         # TRBDF2();

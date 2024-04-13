@@ -4,9 +4,9 @@ authors = ["UgoMire <ugomire@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
 [deps]
-DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 PreallocationTools = "d236fae5-4411-538c-8e31-a6e3d9e00b46"
 TerminalLoggers = "5d786b92-1e48-4d6f-9151-6b4477ca9bed"
 
