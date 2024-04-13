@@ -39,9 +39,9 @@ function solve(prob::FDProblem{<:Any,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
 
     sol = OrdinaryDiffEq.solve(
         prob,
-        Tsit5();
+        # Tsit5();
         # TRBDF2();
-        # AutoTsit5(Rosenbrock23());
+        AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
         abstol = 1e-8,
