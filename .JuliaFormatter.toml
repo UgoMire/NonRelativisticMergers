@@ -1,0 +1,3 @@
+always_for_in = true
+remove_extra_newlines = true
+separate_kwargs_with_semicolon = true
