@@ -4,20 +4,6 @@ function flux(model, ρ, v, p)
     return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
 end
 
-function flux(model, i, ρ, v, p)
-    γ = model.γ
-
-    if i == 1
-        return ρ * v
-    elseif i == 2
-        return ρ * v^2 + p
-    elseif i == 3
-        return (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v
-    else
-        throw(ArgumentError("Invalid index $i"))
-    end
-end
-
 function euler1d!(du, u, p, t)
     (; prob, wstore, fluxstore) = p
     gd = prob.gd
