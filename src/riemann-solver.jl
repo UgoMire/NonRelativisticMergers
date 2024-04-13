@@ -1,11 +1,28 @@
-function solve_riemann_problem!(fluxstore, method::NaiveRS, model, gd, wstore)
-    for j in 1:3, i in 1:gd.Nx
-        ip = i == gd.Nx ? 1 : i + 1
+function solve_riemann_problem!(
+    prob::FDProblem{<:Any,<:Any,<:Any,NaiveRS},
+    fluxstore,
+    wreconstructed,
+)
+    model = prob.model
+    Nx = prob.gd.Nx
 
-        Fminux = flux(model, j, wstore[1, i, 2], wstore[2, i, 2], wstore[3, i, 2])
-        Fplus = flux(model, j, wstore[1, ip, 1], wstore[2, ip, 1], wstore[3, ip, 1])
+    for i in 1:Nx
+        ip = i == Nx ? 1 : i + 1
 
-        fluxstore[j, i] = 1 / 2 * (Fminux + Fplus)
+        Fminux = flux(
+            model,
+            wreconstructed[1, i, 2],
+            wreconstructed[2, i, 2],
+            wreconstructed[3, i, 2],
+        )
+        Fplus = flux(
+            model,
+            wreconstructed[1, ip, 1],
+            wreconstructed[2, ip, 1],
+            wreconstructed[3, ip, 1],
+        )
+
+        @. fluxstore[:, i] = 1 / 2 * (Fminux + Fplus)
     end
 end
 
