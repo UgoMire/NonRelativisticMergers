@@ -14,10 +14,10 @@ struct Grid1D <: Grid
 end
 
 abstract type FDModel end
-struct Euler1D <: FDModel
+struct Euler <: FDModel
     γ::Float64
 
-    Euler1D(; γ = 5 / 3) = new(γ)
+    Euler(; γ = 5 / 3) = new(γ)
 end
 
 abstract type Reconstructor end

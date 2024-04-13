@@ -8,9 +8,10 @@ export FDProblem
 
 # Grids.
 export Grid1D
+export Grid2D
 
 # Fluid dynamics models.
-export Euler1D
+export Euler
 
 # Reconstruction methods.
 export Constant

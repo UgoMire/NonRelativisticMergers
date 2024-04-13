@@ -36,7 +36,7 @@ function euler1d!(du, u, p, t)
     end
 end
 
-function solve(prob::FDProblem{<:Any,Euler1D,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
+function solve(prob::FDProblem{<:Any,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
     Nx = prob.gd.Nx
     γ = prob.model.γ
 

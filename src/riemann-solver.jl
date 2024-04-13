@@ -27,7 +27,7 @@ function solve_riemann_problem!(
 end
 
 function hllc_wavespeed_estimate(
-    prob::FDProblem{<:Any,Euler1D,<:Any,HLLC},
+    prob::FDProblem{<:Any,Euler,<:Any,HLLC},
     rhoL,
     vL,
     pL,
@@ -59,7 +59,7 @@ function hllc_wavespeed_estimate(
 end
 
 function hllc_riemann_solver(
-    prob::FDProblem{<:Any,Euler1D,<:Any,HLLC},
+    prob::FDProblem{<:Any,Euler,<:Any,HLLC},
     rhoL,
     vL,
     pL,
