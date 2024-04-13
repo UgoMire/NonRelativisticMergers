@@ -2,9 +2,14 @@ module NonRelativisticMergers
 
 using DifferentialEquations
 using Makie
+using PreallocationTools
 
+export FDProblem
+
+# Grids.
 export Grid1D
 
+# Fluid dynamics models.
 export Euler1D
 
 # Reconstruction methods.
@@ -16,13 +21,13 @@ export KT
 export NaiveRS
 export HLLC
 
-export solveup
+export solve
 
 export plot_euler
 export plot_reconstruction
 
-include("grid.jl")
-include("reconstruction.jl")
+include("types.jl")
+include("reconstructor.jl")
 include("riemann-solver.jl")
 
 include("1d-euler.jl")

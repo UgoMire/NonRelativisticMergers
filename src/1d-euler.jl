@@ -1,18 +1,3 @@
-struct Euler1D{RC<:Reconstruction,RS<:RiemannSolver}
-    reconst::RC
-    riemannsolver::RS
-
-    γ::Float64
-
-    function Euler1D(;
-        γ = 5 / 3,
-        reconst::RC = Constant(),
-        riemannsolver::RS = NaiveRS(),
-    ) where {RC<:Reconstruction,RS<:RiemannSolver}
-        new{RC,RS}(reconst, riemannsolver, γ)
-    end
-end
-
 function flux(model, ρ, v, p)
     γ = model.γ
 
@@ -34,38 +19,47 @@ function flux(model, i, ρ, v, p)
 end
 
 function euler1d!(du, u, p, t)
-    (; gd, model, wstore, fluxstore) = p
+    (; prob, wstore, fluxstore) = p
+    gd = prob.gd
 
-    reconstruct!(wstore, model.reconst, gd, u)
+    wstore = get_tmp(wstore, u)
+    fluxstore = get_tmp(fluxstore, u)
 
-    solve_riemann_problem!(fluxstore, wstore, model.riemannsolver, model, gd)
+    reconstruct!(prob, wstore, u)
 
-    for j = 1:3, i = 1:gd.Nx
+    solve_riemann_problem!(prob, fluxstore, wstore)
+
+    for j in 1:3, i in 1:gd.Nx
         im = i == 1 ? gd.Nx : i - 1
 
         du[j, i] = -(fluxstore[j, i] - fluxstore[j, im]) / gd.Δx
     end
 end
 
-function solveup(ρ0l, v0l, p0l, gd::Grid1D, model::Euler1D, tspan)
-    u0 = zeros(3, gd.Nx)
+function solve(prob::FDProblem{<:Any,Euler1D,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
+    Nx = prob.gd.Nx
+    γ = prob.model.γ
+
+    u0 = zeros(3, Nx)
 
     @. u0[1, :] = ρ0l
     @. u0[2, :] = v0l * ρ0l
-    @. u0[3, :] = p0l / (model.γ - 1) + 1 / 2 * ρ0l * v0l^2
+    @. u0[3, :] = p0l / (γ - 1) + 1 / 2 * ρ0l * v0l^2
 
-    wstore = zeros(3, gd.Nx, 2)
-    fluxstore = zeros(3, gd.Nx)
+    wstore = DiffCache(zeros(3, Nx, 2))
+    fluxstore = DiffCache(zeros(3, Nx))
 
-    prob = ODEProblem(euler1d!, u0, tspan, (; gd, model, wstore, fluxstore))
+    prob = ODEProblem(euler1d!, u0, tspan, (; prob, wstore, fluxstore))
 
-    sol = solve(
+    sol = DifferentialEquations.solve(
         prob,
-        Tsit5(),
-        # TRBDF2(autodiff = false),
-        # QNDF(autodiff = false),
-        abstol = 1e-14,
-        reltol = 1e-14,
+        Tsit5();
+        # TRBDF2();
+        # AutoTsit5(Rosenbrock23());
+        # QNDF();
+        saveat = range(tspan[1], tspan[2]; length = 100),
+        abstol = 1e-8,
+        reltol = 1e-8,
         progress = true,
         progress_steps = 100,
     )

@@ -1,11 +1,5 @@
-abstract type RiemannSolver end
-
-struct NaiveRS <: RiemannSolver end
-struct HLLC <: RiemannSolver end
-struct Roe <: RiemannSolver end
-
 function solve_riemann_problem!(fluxstore, method::NaiveRS, model, gd, wstore)
-    for j = 1:3, i = 1:gd.Nx
+    for j in 1:3, i in 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
 
         Fminux = flux(model, j, wstore[1, i, 2], wstore[2, i, 2], wstore[3, i, 2])
@@ -15,8 +9,16 @@ function solve_riemann_problem!(fluxstore, method::NaiveRS, model, gd, wstore)
     end
 end
 
-function hllc_wavespeed_estimate(model, rhoL, vL, pL, rhoR, vR, pR)
-    γ = model.γ
+function hllc_wavespeed_estimate(
+    prob::FDProblem{<:Any,Euler1D,<:Any,HLLC},
+    rhoL,
+    vL,
+    pL,
+    rhoR,
+    vR,
+    pR,
+)
+    γ = prob.model.γ
 
     cL = sqrt(γ * pL / rhoL)
     cR = sqrt(γ * pR / rhoR)
@@ -39,8 +41,18 @@ function hllc_wavespeed_estimate(model, rhoL, vL, pL, rhoR, vR, pR)
     return (; SL, SR, SM)
 end
 
-function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
-    (; SL, SR, SM) = hllc_wavespeed_estimate(model, rhoL, vL, pL, rhoR, vR, pR)
+function hllc_riemann_solver(
+    prob::FDProblem{<:Any,Euler1D,<:Any,HLLC},
+    rhoL,
+    vL,
+    pL,
+    rhoR,
+    vR,
+    pR,
+)
+    (; SL, SR, SM) = hllc_wavespeed_estimate(prob, rhoL, vL, pL, rhoR, vR, pR)
+
+    model = prob.model
     γ = model.γ
 
     if 0 < SL
@@ -83,10 +95,15 @@ function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
     end
 end
 
-function solve_riemann_problem!(fluxstore, wreconstructed, method::HLLC, model, gd)
+function solve_riemann_problem!(
+    prob::FDProblem{<:Any,<:Any,<:Any,HLLC},
+    fluxstore,
+    wreconstructed,
+)
+    Nx = prob.gd.Nx
 
-    for i = 1:gd.Nx
-        ip = i == gd.Nx ? 1 : i + 1
+    for i in 1:Nx
+        ip = i == Nx ? 1 : i + 1
 
         rhoL = wreconstructed[1, i, 2]
         vL = wreconstructed[2, i, 2]
@@ -96,6 +113,6 @@ function solve_riemann_problem!(fluxstore, wreconstructed, method::HLLC, model, 
         vR = wreconstructed[2, ip, 1]
         pR = wreconstructed[3, ip, 1]
 
-        fluxstore[:, i] .= hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
+        fluxstore[:, i] .= hllc_riemann_solver(prob, rhoL, vL, pL, rhoR, vR, pR)
     end
 end
