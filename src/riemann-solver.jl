@@ -50,7 +50,7 @@ function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
         FL = flux(model, rhoL, vL, pL)
         EL = pL / (γ - 1) + 1 / 2 * rhoL * vL^2
 
-        UL = [rhoL, rhoL * vL, EL]
+        UL = (rhoL, rhoL * vL, EL)
 
         rhoLstar = rhoL * (SL - vL) / (SL - SM)
         pLstar = pL + rhoL * (vL - SL) * (vL - SM)
@@ -58,15 +58,14 @@ function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
 
         ELstar = (EL * (SL - vL) - pL * vL + pLstar * SM) / (SL - SM)
 
-        ULstar = [rhoLstar, rhoLvLstar, ELstar]
+        ULstar = (rhoLstar, rhoLvLstar, ELstar)
 
-        FLstar = FL + SL * (ULstar - UL)
-        return FLstar
+        return @. FL + SL * (ULstar - UL)
     elseif SM <= 0 <= SR
         FR = flux(model, rhoR, vR, pR)
         ER = pR / (γ - 1) + 1 / 2 * rhoR * vR^2
 
-        UR = [rhoR, rhoR * vR, ER]
+        UR = (rhoR, rhoR * vR, ER)
 
         rhoRstar = rhoR * (SR - vR) / (SR - SM)
         pRstar = pR + rhoR * (vR - SR) * (vR - SM)
@@ -74,28 +73,28 @@ function hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
 
         ERstar = (ER * (SR - vR) - pR * vR + pRstar * SM) / (SR - SM)
 
-        URstar = [rhoRstar, rhoRvRstar, ERstar]
+        URstar = (rhoRstar, rhoRvRstar, ERstar)
 
-        FRstar = FR + SR * (URstar - UR)
-        return FRstar
-    elseif SR < 0
+        return @. FR + SR * (URstar - UR)
+        # elseif SR < 0
+    else
         FR = flux(model, rhoR, vR, pR)
         return FR
     end
 end
 
-function solve_riemann_problem!(fluxstore, method::HLLC, model, gd, w_reconstruct)
+function solve_riemann_problem!(fluxstore, wreconstructed, method::HLLC, model, gd)
 
     for i = 1:gd.Nx
         ip = i == gd.Nx ? 1 : i + 1
 
-        rhoL = w_reconstruct[1, i, 2]
-        vL = w_reconstruct[2, i, 2]
-        pL = w_reconstruct[3, i, 2]
+        rhoL = wreconstructed[1, i, 2]
+        vL = wreconstructed[2, i, 2]
+        pL = wreconstructed[3, i, 2]
 
-        rhoR = w_reconstruct[1, ip, 1]
-        vR = w_reconstruct[2, ip, 1]
-        pR = w_reconstruct[3, ip, 1]
+        rhoR = wreconstructed[1, ip, 1]
+        vR = wreconstructed[2, ip, 1]
+        pR = wreconstructed[3, ip, 1]
 
         fluxstore[:, i] .= hllc_riemann_solver(model, rhoL, vL, pL, rhoR, vR, pR)
     end

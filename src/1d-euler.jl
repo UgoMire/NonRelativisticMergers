@@ -16,7 +16,7 @@ end
 function flux(model, ρ, v, p)
     γ = model.γ
 
-    return [ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v]
+    return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
 end
 
 function flux(model, i, ρ, v, p)
@@ -38,12 +38,12 @@ function euler1d!(du, u, p, t)
 
     reconstruct!(wstore, model.reconst, gd, u)
 
-    solve_riemann_problem!(fluxstore, model.riemannsolver, model, gd, wstore)
+    solve_riemann_problem!(fluxstore, wstore, model.riemannsolver, model, gd)
 
-    for i = 1:gd.Nx
+    for j = 1:3, i = 1:gd.Nx
         im = i == 1 ? gd.Nx : i - 1
 
-        @. du[:, i] = -(fluxstore[:, i] - fluxstore[:, im]) / gd.Δx
+        du[j, i] = -(fluxstore[j, i] - fluxstore[j, im]) / gd.Δx
     end
 end
 
@@ -62,12 +62,12 @@ function solveup(ρ0l, v0l, p0l, gd::Grid1D, model::Euler1D, tspan)
     sol = solve(
         prob,
         Tsit5(),
-        # TRBDF2(),
+        # TRBDF2(autodiff = false),
         # QNDF(autodiff = false),
         abstol = 1e-14,
         reltol = 1e-14,
         progress = true,
-        progress_steps = 500,
+        progress_steps = 100,
     )
 
     return sol
