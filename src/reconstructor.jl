@@ -74,7 +74,7 @@ function minmod(a1, a2, a3)
     end
 end
 
-function reconstruct!(prob::FDProblem{<:Any,<:Any,KT,<:Any}, w_store, u)
+function reconstruct!(prob::FDProblem{<:Any,<:Any,KT,<:Any}, wstore, u)
     Nx = prob.gd.Nx
     Δx = prob.gd.Δx
     θ = prob.reconstructor.θ
@@ -91,8 +91,8 @@ function reconstruct!(prob::FDProblem{<:Any,<:Any,KT,<:Any}, w_store, u)
 
         Drho = minmod(θ * (rho - rhom) / Δx, (rhop - rhom) / 2Δx, θ * (rhop - rho) / Δx)
 
-        w_store[1, i, 1] = rho - Drho * Δx / 2
-        w_store[1, i, 2] = rho + Drho * Δx / 2
+        wstore[1, i, 1] = rho - Drho * Δx / 2
+        wstore[1, i, 2] = rho + Drho * Δx / 2
 
         # Reconstruct the velocity.
         v = u[2, i] / u[1, i]
@@ -101,8 +101,8 @@ function reconstruct!(prob::FDProblem{<:Any,<:Any,KT,<:Any}, w_store, u)
 
         Dv = minmod(θ * (v - vm) / Δx, (vp - vm) / 2Δx, θ * (vp - v) / Δx)
 
-        w_store[2, i, 1] = v - Dv * Δx / 2
-        w_store[2, i, 2] = v + Dv * Δx / 2
+        wstore[2, i, 1] = v - Dv * Δx / 2
+        wstore[2, i, 2] = v + Dv * Δx / 2
 
         # Reconstruct the pressure.
         p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
@@ -111,7 +111,7 @@ function reconstruct!(prob::FDProblem{<:Any,<:Any,KT,<:Any}, w_store, u)
 
         Dp = minmod(θ * (p - pm) / Δx, (pp - pm) / 2Δx, θ * (pp - p) / Δx)
 
-        w_store[3, i, 1] = p - Dp * Δx / 2
-        w_store[3, i, 2] = p + Dp * Δx / 2
+        wstore[3, i, 1] = p - Dp * Δx / 2
+        wstore[3, i, 2] = p + Dp * Δx / 2
     end
 end
