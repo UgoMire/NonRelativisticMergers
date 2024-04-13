@@ -1,34 +1,31 @@
-function reconstruct(method::Constant, gd, u)
-    w_reconstruct = zeros(3, gd.Nx, 2)
+function reconstruct!(prob::FDProblem{<:Any,<:Any,Constant,<:Any}, wstore, u)
+    Nx = prob.gd.Nx
+    γ = prob.model.γ
 
-    γ = 5 / 3
-
-    for i in 1:gd.Nx
-        ip = i == gd.Nx ? 1 : i + 1
+    for i in 1:Nx
+        ip = i == Nx ? 1 : i + 1
 
         # Reconstruct the density.
         rho = u[1, i]
         rhop = u[1, ip]
 
-        w_reconstruct[1, i, 1] = rho
-        w_reconstruct[1, i, 2] = rhop
+        wstore[1, i, 1] = rho
+        wstore[1, i, 2] = rhop
 
         # Reconstruct the velocity.
         v = u[2, i] / u[1, i]
         vp = u[2, ip] / u[1, ip]
 
-        w_reconstruct[2, i, 1] = v
-        w_reconstruct[2, i, 2] = vp
+        wstore[2, i, 1] = v
+        wstore[2, i, 2] = vp
 
         # Reconstruct the pressure.
         p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
         pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
 
-        w_reconstruct[3, i, 1] = p
-        w_reconstruct[3, i, 2] = pp
+        wstore[3, i, 1] = p
+        wstore[3, i, 2] = pp
     end
-
-    return w_reconstruct
 end
 
 function reconstruct(method::MUSCL, gd, u)
