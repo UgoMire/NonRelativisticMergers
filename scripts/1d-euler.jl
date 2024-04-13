@@ -8,7 +8,7 @@ gd = Grid1D(; xmin = -1, xmax = 2, Nx = 300)
 
 # ρ0l = ones(gd.Nx)
 ρ0l = 0.1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
-# ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.01 for x in gd.xl]
+# ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
 # v0l = ones(gd.Nx)
@@ -16,23 +16,25 @@ v0l = zeros(gd.Nx)
 
 # p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
-# p0l = map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+# p0l = 0.1 .+ map(x -> 1.8 * exp(-100 * (x - 0.5)^2), gd.xl)
 p0l = 0.1 .+ map(x -> 0.4 * exp(-100 * (x - 0.5)^2), gd.xl)
-# p0l = [0.4 < x < 0.6 ? 2 : 0.01 for x in gd.xl]
+# p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
 
-tspan = (0, 0.051)
+tspan = (0, 0.053)
 
-# reconst = Constant()
-# reconst = MUSCL()
-reconst = KT()
+# reconstructor = Constant()
+# reconstructor = MUSCL()
+reconstructor = KT()
 
-riemannsolver = NaiveRS()
-# riemannsolver = HLLC()
+# riemannsolver = NaiveRS()
+riemannsolver = HLLC()
 
-# model = Euler1D(Constant(), NaiveRS(), ρ0l, v0l, p0l)
-model = Euler1D(; reconst, riemannsolver)
+# model = Euler(Constant(), NaiveRS(), ρ0l, v0l, p0l)
+# model = Euler(; reconst, riemannsolver)
 
-sol = solveup(ρ0l, v0l, p0l, gd, model, tspan)
+prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
+
+sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
 plot_euler(sol, gd)
 
@@ -48,12 +50,12 @@ plot_reconstruction(gd, model, u0)
 ##
 # reconst = Constant()
 # reconst = MUSCL()
-reconst = KT()
+reconstructor = KT()
 
 # riemannsolver = NaiveRS()
 riemannsolver = HLLC()
 
-model = Euler1D(; reconst, riemannsolver)
+prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
 
 u0 = zeros(3, gd.Nx)
 
@@ -67,7 +69,9 @@ du = copy(u0)
 wstore = zeros(3, gd.Nx, 2)
 fluxstore = zeros(3, gd.Nx)
 
-@btime NonRelativisticMergers.euler1d!(du, u0, (; gd, model, wstore, fluxstore), tspan[1])
+p = (; prob, wstore, fluxstore)
+
+@btime NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
 ##
 @code_warntype NonRelativisticMergers.euler1d!(
     du,
