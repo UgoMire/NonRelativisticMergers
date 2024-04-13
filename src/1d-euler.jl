@@ -1,5 +1,5 @@
-function flux(model, ρ, v, p)
-    γ = model.γ
+function flux(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ, v, p)
+    γ = prob.model.γ
 
     return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
 end
