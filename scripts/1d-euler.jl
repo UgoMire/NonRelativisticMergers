@@ -20,7 +20,7 @@ v0l = zeros(gd.Nx)
 p0l = 0.1 .+ map(x -> 0.4 * exp(-100 * (x - 0.5)^2), gd.xl)
 # p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
 
-tspan = (0, 0.053)
+tspan = (0, 5.053)
 
 # reconstructor = Constant()
 # reconstructor = MUSCL()
