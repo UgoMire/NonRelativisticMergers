@@ -1,4 +1,15 @@
 abstract type Grid end
+abstract type FDModel end
+abstract type Reconstructor end
+abstract type RiemannSolver end
+
+struct FDProblem{GD<:Grid,MD<:FDModel,RC<:Reconstructor,RS<:RiemannSolver}
+    gd::GD
+    model::MD
+    reconstructor::RC
+    riemannsolver::RS
+end
+
 struct Grid1D <: Grid
     xmin::Float64
     xmax::Float64
@@ -36,14 +47,12 @@ struct Grid2D <: Grid
     end
 end
 
-abstract type FDModel end
 struct Euler <: FDModel
     γ::Float64
 
     Euler(; γ = 5 / 3) = new(γ)
 end
 
-abstract type Reconstructor end
 struct Constant <: Reconstructor end
 struct MUSCL <: Reconstructor
     κ::Float64
@@ -56,14 +65,6 @@ struct KT <: Reconstructor
     KT(θ = 2) = new(θ)
 end
 
-abstract type RiemannSolver end
 struct NaiveRS <: RiemannSolver end
 struct HLLC <: RiemannSolver end
 struct Roe <: RiemannSolver end
-
-struct FDProblem{GD<:Grid,MD<:FDModel,RC<:Reconstructor,RS<:RiemannSolver}
-    gd::GD
-    model::MD
-    reconstructor::RC
-    riemannsolver::RS
-end
