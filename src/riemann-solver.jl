@@ -25,6 +25,35 @@ function solve_riemann_problem!(
     end
 end
 
+function solve_riemann_problem!(
+    prob::FDProblem{Grid2D,<:Any,<:Any,NaiveRS},
+    xfluxstore,
+    yfluxstore,
+    w,
+)
+    (; Nx, Ny) = prob.grid
+
+    ρ = @view w[1, :, :, :]
+    vx = @view w[2, :, :, :]
+    vy = @view w[3, :, :, :]
+    P = @view w[4, :, :, :]
+
+    for ix in 1:Nx, iy in 1:Ny
+        ixp = ix == Nx ? 1 : ix + 1
+        iyp = iy == Ny ? 1 : iy + 1
+
+        Fminus = Fflux(prob, ρ[ix, iy, 2], vx[ix, iy, 2], vy[ix, iy, 2], P[ix, iy, 2])
+        Fplus = Fflux(prob, ρ[ixp, iy, 1], vx[ixp, iy, 1], vy[ixp, iy, 1], P[ixp, iy, 1])
+
+        @. xfluxstore[:, ix, iy] = 1 / 2 * (Fminus + Fplus)
+
+        Gminus = Gflux(prob, ρ[ix, iy, 4], vx[ix, iy, 4], vy[ix, iy, 4], P[ix, iy, 4])
+        Gplus = Gflux(prob, ρ[ix, iyp, 3], vx[ix, iyp, 3], vy[ix, iyp, 3], P[ix, iyp, 3])
+
+        @. yfluxstore[:, ix, iy] = 1 / 2 * (Gminus + Gplus)
+    end
+end
+
 function hllc_wavespeed_estimate(
     prob::FDProblem{<:Any,Euler,<:Any,HLLC},
     rhoL,
@@ -108,7 +137,7 @@ function hllc_riemann_solver(
 end
 
 function solve_riemann_problem!(
-    prob::FDProblem{<:Any,<:Any,<:Any,HLLC},
+    prob::FDProblem{Grid1D,Euler,<:Any,HLLC},
     fluxstore,
     wreconstructed,
 )
