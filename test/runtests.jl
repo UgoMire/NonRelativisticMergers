@@ -2,18 +2,18 @@ using NonRelativisticMergers
 using Test
 
 @testset verbose = true "1d Euler - Hydrostatic flow is time independent" begin
-    gd = Grid1D(; xmin = 0, xmax = 1, Nx = 100)
+    grid = Grid1D(; xmin = 0, xmax = 1, Nx = 100)
 
-    ρ0l = ones(gd.Nx)
-    v0l = zeros(gd.Nx)
-    p0l = zeros(gd.Nx)
+    ρ0l = ones(grid.Nx)
+    v0l = zeros(grid.Nx)
+    p0l = zeros(grid.Nx)
 
     tspan = (0, 1)
 
     @testset "- $reconstructor, $riemannsolver" for reconstructor in (Constant(), KT()),
         riemannsolver in (NaiveRS(), HLLC())
 
-        prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
+        prob = FDProblem(grid, Euler(), reconstructor, riemannsolver)
         sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
         ρend = sol.u[end][1, :]

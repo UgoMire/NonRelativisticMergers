@@ -1,9 +1,9 @@
 function solve_riemann_problem!(
-    prob::FDProblem{<:Any,<:Any,<:Any,NaiveRS},
+    prob::FDProblem{Grid1D,<:Any,<:Any,NaiveRS},
     fluxstore,
     wreconstructed,
 )
-    Nx = prob.gd.Nx
+    (; Nx) = prob.grid
 
     for i in 1:Nx
         ip = i == Nx ? 1 : i + 1
@@ -34,7 +34,7 @@ function hllc_wavespeed_estimate(
     vR,
     pR,
 )
-    γ = prob.model.γ
+    (; γ) = prob.model
 
     cL = sqrt(γ * pL / rhoL)
     cR = sqrt(γ * pR / rhoR)
@@ -66,13 +66,12 @@ function hllc_riemann_solver(
     vR,
     pR,
 )
+    (; γ) = prob.model
+
     (; SL, SR, SM) = hllc_wavespeed_estimate(prob, rhoL, vL, pL, rhoR, vR, pR)
 
-    γ = prob.model.γ
-
     if 0 < SL
-        FL = flux(prob, rhoL, vL, pL)
-        return FL
+        return flux(prob, rhoL, vL, pL)
     elseif SL <= 0 < SM
         FL = flux(prob, rhoL, vL, pL)
         EL = pL / (γ - 1) + 1 / 2 * rhoL * vL^2
@@ -103,10 +102,8 @@ function hllc_riemann_solver(
         URstar = (rhoRstar, rhoRvRstar, ERstar)
 
         return @. FR + SR * (URstar - UR)
-        # elseif SR < 0
     else
-        FR = flux(prob, rhoR, vR, pR)
-        return FR
+        return flux(prob, rhoR, vR, pR)
     end
 end
 
@@ -115,7 +112,7 @@ function solve_riemann_problem!(
     fluxstore,
     wreconstructed,
 )
-    Nx = prob.gd.Nx
+    (; Nx) = prob.grid
 
     for i in 1:Nx
         ip = i == Nx ? 1 : i + 1

@@ -1,12 +1,12 @@
 function flux(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ, v, p)
-    γ = prob.model.γ
+    (; γ) = prob.model
 
     return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
 end
 
 function euler1d!(du, u, p, t)
     (; prob, wstore, fluxstore) = p
-    gd = prob.gd
+    (; Nx, Δx) = prob.grid
 
     wstore = get_tmp(wstore, u)
     fluxstore = get_tmp(fluxstore, u)
@@ -15,15 +15,15 @@ function euler1d!(du, u, p, t)
 
     solve_riemann_problem!(prob, fluxstore, wstore)
 
-    for j in 1:3, i in 1:gd.Nx
-        im = i == 1 ? gd.Nx : i - 1
+    for j in 1:3, i in 1:Nx
+        im = i == 1 ? Nx : i - 1
 
-        du[j, i] = -(fluxstore[j, i] - fluxstore[j, im]) / gd.Δx
+        du[j, i] = -(fluxstore[j, i] - fluxstore[j, im]) / Δx
     end
 end
 
 function setup_initial_state(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l)
-    (; Nx) = prob.gd
+    (; Nx) = prob.grid
     (; γ) = prob.model
 
     u0 = zeros(3, Nx)
@@ -36,10 +36,12 @@ function setup_initial_state(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0
 end
 
 function solve(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
+    (; Nx) = prob.grid
+
     u0 = setup_initial_state(prob, ρ0l, v0l, p0l)
 
-    wstore = DiffCache(zeros(3, prob.gd.Nx, 2))
-    fluxstore = DiffCache(zeros(3, prob.gd.Nx))
+    wstore = DiffCache(zeros(3, Nx, 2))
+    fluxstore = DiffCache(zeros(3, Nx))
 
     prob = ODEProblem(euler1d!, u0, tspan, (; prob, wstore, fluxstore))
 
