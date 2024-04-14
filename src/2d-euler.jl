@@ -1,8 +1,19 @@
+function get_primitive_variables(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, u, ix, iy)
+    (; γ) = prob.model
+
+    ρ = u[1, ix, iy]
+    vx = u[2, ix, iy] / ρ
+    vy = u[2, ix, iy] / ρ
+    p = (γ - 1) * (u[3, ix, iy] - 1 / 2 * ρ * (vx^2 + vy^2))
+
+    return ρ, vx, vy, p
+end
+
 function euler2d!(du, u, p, t)
     (; prob, wstore, xfluxstore, yfluxstore) = p
-    (; xl, yl, Δx, Δy, Nx, Ny) = prob.gd
+    (; xl, yl, Δx, Δy, Nx, Ny) = prob.grid
 
-    # reconstruct!(prob, wstore, u)
+    reconstruct!(prob, wstore, u)
 
     # solve_riemann_problem!(prob, xfluxstore, yfluxstore, wstore)
 
@@ -17,7 +28,7 @@ function euler2d!(du, u, p, t)
 end
 
 function setup_initial_state(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, p0)
-    (; Nx, Ny) = prob.gd
+    (; Nx, Ny) = prob.grid
     (; γ) = prob.model
 
     u0 = zeros(4, Nx, Ny)
@@ -31,11 +42,11 @@ function setup_initial_state(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0
 end
 
 function solve(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, p0, tspan)
-    (; Nx, Ny) = prob.gd
+    (; Nx, Ny) = prob.grid
 
     u0 = setup_initial_state(prob, ρ0, vx0, vy0, p0)
 
-    wstore = zeros(4, Nx, Ny, 2)
+    wstore = zeros(4, Nx, Ny, 4)
     xfluxstore = zeros(4, Nx, Ny)
     yfluxstore = zeros(4, Nx, Ny)
 
