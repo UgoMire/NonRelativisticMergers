@@ -3,10 +3,26 @@ function get_primitive_variables(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, u, i
 
     ρ = u[1, ix, iy]
     vx = u[2, ix, iy] / ρ
-    vy = u[2, ix, iy] / ρ
-    p = (γ - 1) * (u[3, ix, iy] - 1 / 2 * ρ * (vx^2 + vy^2))
+    vy = u[3, ix, iy] / ρ
+    P = (γ - 1) * (u[4, ix, iy] - 1 / 2 * ρ * (vx^2 + vy^2))
 
-    return ρ, vx, vy, p
+    return ρ, vx, vy, P
+end
+
+function Fflux(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P)
+    (; γ) = prob.model
+
+    E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
+
+    return (ρ * vx, ρ * vx^2 + P, ρ * vx * vy, (E + P) * vx)
+end
+
+function Gflux(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P)
+    (; γ) = prob.model
+
+    E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
+
+    return (ρ * vy, ρ * vx * vy, ρ * vy^2 + P, (E + P) * vy)
 end
 
 function euler2d!(du, u, p, t)
@@ -15,7 +31,7 @@ function euler2d!(du, u, p, t)
 
     reconstruct!(prob, wstore, u)
 
-    # solve_riemann_problem!(prob, xfluxstore, yfluxstore, wstore)
+    solve_riemann_problem!(prob, xfluxstore, yfluxstore, wstore)
 
     for j in 1:4, ix in eachindex(xl), iy in eachindex(yl)
         ixm = ix == 1 ? Nx : ix - 1
@@ -27,7 +43,7 @@ function euler2d!(du, u, p, t)
     end
 end
 
-function setup_initial_state(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, p0)
+function setup_initial_state(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, P0)
     (; Nx, Ny) = prob.grid
     (; γ) = prob.model
 
@@ -36,15 +52,15 @@ function setup_initial_state(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0
     @. u0[1, :, :] = ρ0
     @. u0[2, :, :] = vx0 * ρ0
     @. u0[3, :, :] = vy0 * ρ0
-    @. u0[4, :, :] = p0 / (γ - 1) + 1 / 2 * ρ0 * (vx0^2 + vy0^2)
+    @. u0[4, :, :] = P0 / (γ - 1) + 1 / 2 * ρ0 * (vx0^2 + vy0^2)
 
     return u0
 end
 
-function solve(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, p0, tspan)
+function solve(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, P0, tspan)
     (; Nx, Ny) = prob.grid
 
-    u0 = setup_initial_state(prob, ρ0, vx0, vy0, p0)
+    u0 = setup_initial_state(prob, ρ0, vx0, vy0, P0)
 
     wstore = zeros(4, Nx, Ny, 4)
     xfluxstore = zeros(4, Nx, Ny)
