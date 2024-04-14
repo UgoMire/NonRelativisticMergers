@@ -1,28 +1,21 @@
 function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
     (; Nx) = prob.grid
-    (; γ) = prob.model
 
     for i in 1:Nx
         ip = i == Nx ? 1 : i + 1
 
-        # Reconstruct the density.
-        rho = u[1, i]
-        rhop = u[1, ip]
+        ρ, v, p = get_primitive_variables(prob, u, i)
+        ρp, vp, pp = get_primitive_variables(prob, u, ip)
 
-        wstore[1, i, 1] = rho
-        wstore[1, i, 2] = rhop
+        # Reconstruct the density.
+        wstore[1, i, 1] = ρ
+        wstore[1, i, 2] = ρp
 
         # Reconstruct the velocity.
-        v = u[2, i] / u[1, i]
-        vp = u[2, ip] / u[1, ip]
-
         wstore[2, i, 1] = v
         wstore[2, i, 2] = vp
 
         # Reconstruct the pressure.
-        p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
-        pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
-
         wstore[3, i, 1] = p
         wstore[3, i, 2] = pp
     end

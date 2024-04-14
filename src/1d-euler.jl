@@ -1,3 +1,13 @@
+function get_primitive_variables(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, u, i)
+    (; γ) = prob.model
+
+    ρ = u[1, i]
+    v = u[2, i] / u[1, i]
+    p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
+
+    return ρ, v, p
+end
+
 function flux(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ, v, p)
     (; γ) = prob.model
 
