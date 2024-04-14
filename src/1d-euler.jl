@@ -22,9 +22,9 @@ function euler1d!(du, u, p, t)
     end
 end
 
-function solve(prob::FDProblem{<:Any,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
-    Nx = prob.gd.Nx
-    γ = prob.model.γ
+function setup_initial_state(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l)
+    (; Nx) = prob.gd
+    (; γ) = prob.model
 
     u0 = zeros(3, Nx)
 
@@ -32,8 +32,14 @@ function solve(prob::FDProblem{<:Any,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
     @. u0[2, :] = v0l * ρ0l
     @. u0[3, :] = p0l / (γ - 1) + 1 / 2 * ρ0l * v0l^2
 
-    wstore = DiffCache(zeros(3, Nx, 2))
-    fluxstore = DiffCache(zeros(3, Nx))
+    return u0
+end
+
+function solve(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
+    u0 = setup_initial_state(prob, ρ0l, v0l, p0l)
+
+    wstore = DiffCache(zeros(3, prob.gd.Nx, 2))
+    fluxstore = DiffCache(zeros(3, prob.gd.Nx))
 
     prob = ODEProblem(euler1d!, u0, tspan, (; prob, wstore, fluxstore))
 
