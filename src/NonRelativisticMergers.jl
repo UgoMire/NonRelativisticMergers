@@ -25,6 +25,7 @@ export HLLC
 export solve
 
 export plot_euler
+export plot_euler2d
 export plot_reconstruction
 
 include("types.jl")

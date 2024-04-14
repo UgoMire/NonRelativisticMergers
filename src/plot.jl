@@ -2,7 +2,7 @@ function plot_euler(sol, gd)
     u0 = sol.u[1]
     tspan = (sol.t[1], sol.t[end])
 
-    fig = Figure(size = (1200, 400))
+    fig = Figure(; size = (1200, 400))
 
     sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
     tlift = sg.sliders[1].value
@@ -33,28 +33,62 @@ function plot_euler(sol, gd)
     return fig
 end
 
+function plot_euler2d(prob, sol)
+    (; xl, yl) = prob.grid
+
+    tspan = (sol.t[1], sol.t[end])
+
+    fig = Figure(; size = (1200, 400))
+
+    sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
+    tlift = sg.sliders[1].value
+
+    ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
+    heatmap!(ax1, xl, yl, (@lift sol($tlift)[1, :, :]))
+
+    ax2 = Axis(fig[1, 2]; title = "x velocity", xlabel = "x")
+    heatmap!(ax2, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]))
+
+    ax2 = Axis(fig[1, 3]; title = "x velocity", xlabel = "x")
+    heatmap!(ax2, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]))
+
+    ax3 = Axis(fig[1, 4]; title = "pressure", xlabel = "x")
+    heatmap!(
+        ax3,
+        xl,
+        yl,
+        (@lift (5 / 3 - 1) * (
+            sol($tlift)[4, :, :] .-
+            1 / 2 * sol($tlift)[1, :, :] .*
+            (sol($tlift)[2, :, :] .^ 2 + sol($tlift)[3, :, :] .^ 2)
+        )),
+    )
+
+    return fig
+end
+
 function plot_reconstruction(gd, model, u0)
     w_reconstruct = reconstruct(model.reconst, gd, u0)
 
-    fig = Figure(size = (1200, 400))
+    fig = Figure(; size = (1200, 400))
 
     ax1 = Axis(fig[1, 1]; title = "density")
     ax2 = Axis(fig[1, 2]; title = "velocity")
     ax3 = Axis(fig[1, 3]; title = "pressure")
 
-    for i = 1:gd.Nx, (ax, j) in zip([ax1, ax2, ax3], 1:3)
+    for i in 1:gd.Nx, (ax, j) in zip([ax1, ax2, ax3], 1:3)
         lines!(
             ax,
             [gd.xl[i] - gd.Δx / 2, gd.xl[i] + gd.Δx / 2],
-            [u0[j, i], u0[j, i]],
+            [u0[j, i], u0[j, i]];
             color = :black,
         )
-        scatter!(ax, [gd.xl[i] - gd.Δx / 2], [w_reconstruct[j, i, 1]], color = :red)
-        scatter!(ax, [gd.xl[i] + gd.Δx / 2], [w_reconstruct[j, i, 2]], color = :blue)
+        scatter!(ax, [gd.xl[i] - gd.Δx / 2], [w_reconstruct[j, i, 1]]; color = :red)
+        scatter!(ax, [gd.xl[i] + gd.Δx / 2], [w_reconstruct[j, i, 2]]; color = :blue)
         lines!(
             ax,
             [gd.xl[i] - gd.Δx / 2, gd.xl[i] + gd.Δx / 2],
-            [w_reconstruct[j, i, 1], w_reconstruct[j, i, 2]],
+            [w_reconstruct[j, i, 1], w_reconstruct[j, i, 2]];
             color = :grey,
             linestyle = :dash,
         )
