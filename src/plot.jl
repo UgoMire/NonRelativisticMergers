@@ -33,7 +33,7 @@ function plot_euler(sol, gd)
     return fig
 end
 
-function plot_euler2d(prob, sol)
+function plot_euler2d(prob, sol; interpolate = true)
     (; xl, yl) = prob.grid
 
     tspan = (sol.t[1], sol.t[end])
@@ -44,13 +44,21 @@ function plot_euler2d(prob, sol)
     tlift = sg.sliders[1].value
 
     ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
-    heatmap!(ax1, xl, yl, (@lift sol($tlift)[1, :, :]))
+    heatmap!(ax1, xl, yl, (@lift sol($tlift)[1, :, :]); interpolate)
+    # arrows!(
+    #     ax1,
+    #     xl,
+    #     yl,
+    #     (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]),
+    #     (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]);
+    #     arrowsize = 3,
+    # )
 
     ax2 = Axis(fig[1, 2]; title = "x velocity", xlabel = "x")
-    heatmap!(ax2, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]))
+    heatmap!(ax2, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
-    ax2 = Axis(fig[1, 3]; title = "x velocity", xlabel = "x")
-    heatmap!(ax2, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]))
+    ax2 = Axis(fig[1, 3]; title = "y velocity", xlabel = "x")
+    heatmap!(ax2, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
     ax3 = Axis(fig[1, 4]; title = "pressure", xlabel = "x")
     heatmap!(
@@ -61,7 +69,8 @@ function plot_euler2d(prob, sol)
             sol($tlift)[4, :, :] .-
             1 / 2 * sol($tlift)[1, :, :] .*
             (sol($tlift)[2, :, :] .^ 2 + sol($tlift)[3, :, :] .^ 2)
-        )),
+        ));
+        interpolate,
     )
 
     return fig
