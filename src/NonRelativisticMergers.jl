@@ -32,6 +32,7 @@ include("reconstructor.jl")
 include("riemann-solver.jl")
 
 include("1d-euler.jl")
+include("2d-euler.jl")
 
 include("plot.jl")
 
