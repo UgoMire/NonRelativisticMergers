@@ -21,8 +21,45 @@ function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
     end
 end
 
-function reconstruct(method::MUSCL, gd, u)
-    κ = method.κ
+function reconstruct!(prob::FDProblem{Grid2D,<:Any,Constant,<:Any}, wstore, u)
+    (; Nx, Ny) = prob.grid
+
+    for ix in 1:Nx, iy in 1:Ny
+        ixp = ix == Nx ? 1 : ix + 1
+        iyp = iy == Ny ? 1 : iy + 1
+
+        # Get the primitive variables.
+        ρ, vx, vy, p = get_primitive_variables(prob, u, ix, iy)
+        ρ_px, vx_px, vy_px, p_px = get_primitive_variables(prob, u, ixp, iy)
+        ρ_py, vx_py, vy_py, p_py = get_primitive_variables(prob, u, ix, iyp)
+
+        # Reconstruct the density.
+        wstore[1, ix, iy, 1] = ρ
+        wstore[1, ix, iy, 2] = ρ_px
+        wstore[1, ix, iy, 3] = ρ
+        wstore[1, ix, iy, 4] = ρ_py
+
+        # Reconstruct the velocity.
+        wstore[2, ix, iy, 1] = vx
+        wstore[2, ix, iy, 2] = vx_px
+        wstore[2, ix, iy, 3] = vx
+        wstore[2, ix, iy, 4] = vx_py
+
+        wstore[3, ix, iy, 1] = vy
+        wstore[3, ix, iy, 2] = vy_px
+        wstore[3, ix, iy, 3] = vy
+        wstore[3, ix, iy, 4] = vy_py
+
+        # Reconstruct the pressure.
+        wstore[4, ix, iy, 1] = p
+        wstore[4, ix, iy, 2] = p_px
+        wstore[4, ix, iy, 3] = p
+        wstore[4, ix, iy, 4] = p_py
+    end
+end
+
+# function reconstruct(method::MUSCL, gd, u)
+#     κ = method.κ
 
 #     w_reconstruct = zeros(3, gd.Nx, 2)
 
