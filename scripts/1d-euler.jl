@@ -7,7 +7,7 @@ global_logger(TerminalLogger())
 gd = Grid1D(; xmin = -1, xmax = 2, Nx = 300)
 
 # ρ0l = ones(gd.Nx)
-ρ0l = 1.0 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+ρ0l = 0.1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
 # ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
@@ -17,10 +17,10 @@ v0l = zeros(gd.Nx)
 # p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
 # p0l = 0.1 .+ map(x -> 1.8 * exp(-100 * (x - 0.5)^2), gd.xl)
-p0l = 1.0 .+ map(x -> 0.4 * exp(-100 * (x - 0.5)^2), gd.xl)
+p0l = 0.1 .+ map(x -> 0.4 * exp(-100 * (x - 0.5)^2), gd.xl)
 # p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
 
-tspan = (0, 5.053)
+tspan = (0, 0.046)
 
 # reconstructor = Constant()
 # reconstructor = MUSCL()
@@ -48,9 +48,9 @@ u0 = sol.u[end]
 plot_reconstruction(gd, model, u0)
 
 ##
-# reconst = Constant()
+reconst = Constant()
 # reconst = MUSCL()
-reconstructor = KT()
+# reconstructor = KT()
 
 # riemannsolver = NaiveRS()
 riemannsolver = HLLC()
