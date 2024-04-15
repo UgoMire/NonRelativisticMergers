@@ -78,8 +78,8 @@ function solve(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ0, vx0, vy0, P0, tsp
         # TRBDF2();
         # AutoTsit5(Rosenbrock23());
         # QNDF();
-        # saveat = range(tspan[1], tspan[2]; length = 100),
-        saveat = [],
+        saveat = range(tspan[1], tspan[2]; length = 100),
+        # saveat = [],
         abstol = 1e-8,
         reltol = 1e-8,
         progress = true,
