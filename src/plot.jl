@@ -43,8 +43,8 @@ function plot_euler2d(prob, sol; interpolate = true)
     sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
     tlift = sg.sliders[1].value
 
-    ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
-    heatmap!(ax1, xl, yl, (@lift sol($tlift)[1, :, :]); interpolate)
+    ax1 = Axis3(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
+    surface!(ax1, xl, yl, (@lift sol($tlift)[1, :, :]); interpolate)
     # arrows!(
     #     ax1,
     #     xl,
@@ -54,15 +54,15 @@ function plot_euler2d(prob, sol; interpolate = true)
     #     arrowsize = 3,
     # )
 
-    ax2 = Axis(fig[1, 2]; title = "x velocity", xlabel = "x")
-    heatmap!(ax2, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]); interpolate)
+    ax3 = Axis3(fig[1, 2]; title = "x velocity", xlabel = "x")
+    surface!(ax3, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
-    ax2 = Axis(fig[1, 3]; title = "y velocity", xlabel = "x")
-    heatmap!(ax2, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]); interpolate)
+    ax3 = Axis3(fig[1, 3]; title = "y velocity", xlabel = "x")
+    surface!(ax3, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
-    ax3 = Axis(fig[1, 4]; title = "pressure", xlabel = "x")
-    heatmap!(
-        ax3,
+    ax4 = Axis3(fig[1, 4]; title = "pressure", xlabel = "x")
+    surface!(
+        ax4,
         xl,
         yl,
         (@lift (5 / 3 - 1) * (
