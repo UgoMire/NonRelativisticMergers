@@ -38,7 +38,7 @@ end
 
     tspan = (0, 1)
 
-    @testset "- $reconstructor, $riemannsolver" for reconstructor in (Constant(),)
+    @testset "- $reconstructor, $riemannsolver" for reconstructor in (Constant(), KT()),
         riemannsolver in (NaiveRS(),)
 
         prob = FDProblem(grid, Euler(), reconstructor, riemannsolver)
