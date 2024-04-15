@@ -146,7 +146,6 @@ end
 function reconstruct!(prob::FDProblem{Grid2D,<:Any,KT,<:Any}, wstore, u)
     (; Nx, Ny, Δx, Δy) = prob.grid
     (; θ) = prob.reconstructor
-    (; γ) = prob.model
 
     for ix in 1:Nx, iy in 1:Ny
         ixp = ix == Nx ? 1 : ix + 1
@@ -161,29 +160,40 @@ function reconstruct!(prob::FDProblem{Grid2D,<:Any,KT,<:Any}, wstore, u)
         ρ_py, vx_py, vy_py, P_py = get_primitive_variables(prob, u, ix, iyp)
         ρ_my, vx_my, vy_my, P_my = get_primitive_variables(prob, u, ix, iym)
 
-        Drho = minmod(θ * (rho - rhom) / Δx, (rhop - rhom) / 2Δx, θ * (rhop - rho) / Δx)
+        # Reconstruct the density.
+        Dx_ρ = minmod(θ * (ρ - ρ_mx) / Δx, (ρ_px - ρ_mx) / 2Δx, θ * (ρ_px - ρ) / Δx)
+        Dy_ρ = minmod(θ * (ρ - ρ_my) / Δy, (ρ_py - ρ_my) / 2Δy, θ * (ρ_py - ρ) / Δy)
 
-        wstore[1, i, 1] = rho - Drho * Δx / 2
-        wstore[1, i, 2] = rho + Drho * Δx / 2
+        wstore[1, ix, iy, 1] = ρ - Dx_ρ * Δx / 2
+        wstore[1, ix, iy, 2] = ρ + Dx_ρ * Δx / 2
+        wstore[1, ix, iy, 3] = ρ - Dy_ρ * Δy / 2
+        wstore[1, ix, iy, 4] = ρ + Dy_ρ * Δy / 2
 
-        # Reconstruct the velocity.
-        v = u[2, i] / u[1, i]
-        vp = u[2, ip] / u[1, ip]
-        vm = u[2, im] / u[1, im]
+        # Reconstruct the x velocity.
+        Dx_vx = minmod(θ * (vx - vx_mx) / Δx, (vx_px - vx_mx) / 2Δx, θ * (vx_px - vx) / Δx)
+        Dy_vx = minmod(θ * (vx - vx_my) / Δy, (vx_py - vx_my) / 2Δy, θ * (vx_py - vx) / Δy)
 
-        Dv = minmod(θ * (v - vm) / Δx, (vp - vm) / 2Δx, θ * (vp - v) / Δx)
+        wstore[2, ix, iy, 1] = vx - Dx_vx * Δx / 2
+        wstore[2, ix, iy, 2] = vx + Dx_vx * Δx / 2
+        wstore[2, ix, iy, 3] = vx - Dy_vx * Δy / 2
+        wstore[2, ix, iy, 4] = vx + Dy_vx * Δy / 2
 
-        wstore[2, i, 1] = v - Dv * Δx / 2
-        wstore[2, i, 2] = v + Dv * Δx / 2
+        # Reconstruct the y velocity.
+        Dx_vy = minmod(θ * (vy - vy_mx) / Δx, (vy_px - vy_mx) / 2Δx, θ * (vy_px - vy) / Δx)
+        Dy_vy = minmod(θ * (vy - vy_my) / Δy, (vy_py - vy_my) / 2Δy, θ * (vy_py - vy) / Δy)
+
+        wstore[3, ix, iy, 1] = vy - Dx_vy * Δx / 2
+        wstore[3, ix, iy, 2] = vy + Dx_vy * Δx / 2
+        wstore[3, ix, iy, 3] = vy - Dy_vy * Δy / 2
+        wstore[3, ix, iy, 4] = vy + Dy_vy * Δy / 2
 
         # Reconstruct the pressure.
-        p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
-        pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
-        pm = (γ - 1) * (u[3, im] - 1 / 2 * u[1, im] * u[2, im]^2)
+        Dx_P = minmod(θ * (P - P_mx) / Δx, (P_px - P_mx) / 2Δx, θ * (P_px - P) / Δx)
+        Dy_P = minmod(θ * (P - P_my) / Δy, (P_py - P_my) / 2Δy, θ * (P_py - P) / Δy)
 
-        Dp = minmod(θ * (p - pm) / Δx, (pp - pm) / 2Δx, θ * (pp - p) / Δx)
-
-        wstore[3, i, 1] = p - Dp * Δx / 2
-        wstore[3, i, 2] = p + Dp * Δx / 2
+        wstore[4, ix, iy, 1] = P - Dx_P * Δx / 2
+        wstore[4, ix, iy, 2] = P + Dx_P * Δx / 2
+        wstore[4, ix, iy, 3] = P - Dy_P * Δy / 2
+        wstore[4, ix, iy, 4] = P + Dy_P * Δy / 2
     end
 end
