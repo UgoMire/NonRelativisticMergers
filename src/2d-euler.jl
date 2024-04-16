@@ -9,6 +9,14 @@ function get_primitive_variables(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, u, i
     return ρ, vx, vy, P
 end
 
+function get_conserved_variables(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P)
+    (; γ) = prob.model
+
+    E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
+
+    return (ρ, ρ * vx, ρ * vy, E)
+end
+
 function Fflux(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P)
     (; γ) = prob.model
 
@@ -23,6 +31,16 @@ function Gflux(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P)
     E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
 
     return (ρ * vy, ρ * vx * vy, ρ * vy^2 + P, (E + P) * vy)
+end
+
+function flux(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, ρ, vx, vy, P, n)
+    (; γ) = prob.model
+
+    q = vx * n.x + vy * n.y
+
+    E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
+
+    return (ρ * q, ρ * vx * q + P * n.x, ρ * vy * q + P * n.y, (E + P) * q)
 end
 
 function euler2d!(du, u, p, t)
