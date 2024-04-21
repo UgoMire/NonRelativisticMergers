@@ -4,25 +4,35 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid2D(; xmin = -1, xmax = 1, ymin = -1, ymax = 1, Nx = 100, Ny = 100)
+gd = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 100, Ny = 100)
 
-ρ0 = [10.0 + exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+ρ0 = [1.0 for x in gd.xl, y in gd.yl]
+# ρ0 = [1.0 + exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+# ρ0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
 # ρ0 = [-0.2 < x < 0.2 && -0.2 < y < 0.2 ? 2.0 : 1.0 for x in gd.xl, y in gd.yl]
+# ρ0 = [1.0 + exp(-10 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
 
-vx0 = [0.0 for x in gd.xl, y in gd.yl]
+# vx0 = [0.0 for x in gd.xl, y in gd.yl]
+# vx0 = [1.0 for x in gd.xl, y in gd.yl]
+# vx0 = [1.0 - 10y * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+vx0 = [-y / (2π * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 
-vy0 = [0.0 for x in gd.xl, y in gd.yl]
+# vy0 = [0.0 for x in gd.xl, y in gd.yl]
+# vy0 = [1.0 + 10x * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+vy0 = [x / (2π * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 
-P0 = [10.0 + 1 * exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
-# P0 = [-0.2 < x < 0.2 && -0.2 < y < 0.2 ? 2.0 : 1.0 for x in gd.xl, y in gd.yl]
+P0 = [1.0 for x in gd.xl, y in gd.yl]
+# P0 = [1.0 + 1 * exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+# P0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
+# P0 = [1.0 + exp(-10 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
 
-tspan = (0, 0.045)
+tspan = (0, 1.550)
 
 # reconstructor = Constant()
 reconstructor = KT()
 
-riemannsolver = NaiveRS()
-# riemannsolver = HLLC()
+# riemannsolver = NaiveRS()
+riemannsolver = HLLC()
 
 prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
 
