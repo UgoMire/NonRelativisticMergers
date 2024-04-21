@@ -4,8 +4,8 @@ function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
     for i in 1:Nx
         ip = i == Nx ? 1 : i + 1
 
-        ρ, v, p = get_primitive_variables(prob, u, i)
-        ρp, vp, pp = get_primitive_variables(prob, u, ip)
+        ρ, v, P = get_primitive_variables(prob, u, i)
+        ρp, vp, Pp = get_primitive_variables(prob, u, ip)
 
         # Reconstruct the density.
         wstore[1, i, 1] = ρ
@@ -16,8 +16,8 @@ function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
         wstore[2, i, 2] = vp
 
         # Reconstruct the pressure.
-        wstore[3, i, 1] = p
-        wstore[3, i, 2] = pp
+        wstore[3, i, 1] = P
+        wstore[3, i, 2] = Pp
     end
 end
 
@@ -132,14 +132,14 @@ function reconstruct!(prob::FDProblem{Grid1D,<:Any,KT,<:Any}, wstore, u)
         wstore[2, i, 2] = v + Dv * Δx / 2
 
         # Reconstruct the pressure.
-        p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
-        pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
-        pm = (γ - 1) * (u[3, im] - 1 / 2 * u[1, im] * u[2, im]^2)
+        P = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
+        Pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
+        Pm = (γ - 1) * (u[3, im] - 1 / 2 * u[1, im] * u[2, im]^2)
 
-        Dp = minmod(θ * (p - pm) / Δx, (pp - pm) / 2Δx, θ * (pp - p) / Δx)
+        Dp = minmod(θ * (P - Pm) / Δx, (Pp - Pm) / 2Δx, θ * (Pp - P) / Δx)
 
-        wstore[3, i, 1] = p - Dp * Δx / 2
-        wstore[3, i, 2] = p + Dp * Δx / 2
+        wstore[3, i, 1] = P - Dp * Δx / 2
+        wstore[3, i, 2] = P + Dp * Δx / 2
     end
 end
 
