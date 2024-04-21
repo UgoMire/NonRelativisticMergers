@@ -46,11 +46,15 @@ function solve_riemann_problem!(
         Fplus = Fflux(prob, ρ[ip, j, 1], vx[ip, j, 1], vy[ip, j, 1], P[ip, j, 1])
 
         @. xfluxstore[:, i, j] = 1 / 2 * (Fminus + Fplus)
+        # @. xfluxstore[:, i, j] = Fplus
+        # @. xfluxstore[:, i, j] = Fminus
 
         Gminus = Gflux(prob, ρ[i, j, 4], vx[i, j, 4], vy[i, j, 4], P[i, j, 4])
         Gplus = Gflux(prob, ρ[i, jp, 3], vx[i, jp, 3], vy[i, jp, 3], P[i, jp, 3])
 
         @. yfluxstore[:, i, j] = 1 / 2 * (Gminus + Gplus)
+        # @. yfluxstore[:, i, j] = Gplus
+        # @. yfluxstore[:, i, j] = Gminus
     end
 end
 
@@ -219,30 +223,36 @@ function hllc_riemann_solver(
         F_HLLC = FL
     elseif SL <= 0 < SM
         FL = flux(prob, rhoL, uL, vL, pL, n)
+
         UL = get_conserved_variables(prob, rhoL, uL, vL, pL)
+        EL = UL[4]
 
         qL = uL * n.x + vL * n.y
 
         rho_star_L = rhoL * (SL - qL) / (SL - SM)
         p_star = rhoL * (qL - SL) * (qL - SM) + pL
-        rho_u_star_L = ((SL - qL) * rhoL * uL - (p_star - pL) * n.x) / (SL - SM)
-        rho_v_star_L = ((SL - qL) * rhoL * vL - (p_star - pL) * n.y) / (SL - SM)
-        E_star_L = ((SL - qL) * UL[4] - pL * qL + p_star * SM) / (SL - SM)
+        rho_u_star_L = ((SL - qL) * rhoL * uL + (p_star - pL) * n.x) / (SL - SM)
+        rho_v_star_L = ((SL - qL) * rhoL * vL + (p_star - pL) * n.y) / (SL - SM)
+
+        E_star_L = ((SL - qL) * EL - pL * qL + p_star * SM) / (SL - SM)
 
         UL_star = (rho_star_L, rho_u_star_L, rho_v_star_L, E_star_L)
 
         F_HLLC = @. FL + SL * (UL_star - UL)
     elseif SM <= 0 <= SR
         FR = flux(prob, rhoR, uR, vR, pR, n)
+
         UR = get_conserved_variables(prob, rhoR, uR, vR, pR)
+        ER = UR[4]
 
         qR = uR * n.x + vR * n.y
 
         rho_star_R = rhoR * (SR - qR) / (SR - SM)
         p_star = rhoR * (qR - SR) * (qR - SM) + pR
-        rho_u_star_R = ((SR - qR) * rhoR * uR - (p_star - pR) * n.x) / (SR - SM)
-        rho_v_star_R = ((SR - qR) * rhoR * vR - (p_star - pR) * n.y) / (SR - SM)
-        E_star_R = ((SR - qR) * UR[4] - pR * qR + p_star * SM) / (SR - SM)
+        rho_u_star_R = ((SR - qR) * rhoR * uR + (p_star - pR) * n.x) / (SR - SM)
+        rho_v_star_R = ((SR - qR) * rhoR * vR + (p_star - pR) * n.y) / (SR - SM)
+
+        E_star_R = ((SR - qR) * ER - pR * qR + p_star * SM) / (SR - SM)
 
         UR_star = (rho_star_R, rho_u_star_R, rho_v_star_R, E_star_R)
 
