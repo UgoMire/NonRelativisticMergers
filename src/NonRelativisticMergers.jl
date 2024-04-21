@@ -29,11 +29,15 @@ export plot_euler2d
 export plot_reconstruction
 
 include("types.jl")
-include("reconstructor.jl")
-include("riemann-solver.jl")
 
-include("1d-euler.jl")
-include("2d-euler.jl")
+include("reconstructor.jl")
+
+include("riemann-solver/naive.jl")
+include("riemann-solver/hllc-1d.jl")
+include("riemann-solver/hllc-2d.jl")
+
+include("model/1d-euler.jl")
+include("model/2d-euler.jl")
 
 include("plot.jl")
 
