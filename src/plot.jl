@@ -38,9 +38,9 @@ function plot_euler2d(prob, sol; interpolate = true)
 
     tspan = (sol.t[1], sol.t[end])
 
-    fig = Figure(; size = (1200, 400))
+    fig = Figure(; size = (900, 900))
 
-    sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
+    sg = SliderGrid(fig[3, 1:2], (label = "t", range = range(tspan[1], tspan[2], 100)))
     tlift = sg.sliders[1].value
 
     ax1 = Axis3(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
@@ -54,13 +54,13 @@ function plot_euler2d(prob, sol; interpolate = true)
     #     arrowsize = 3,
     # )
 
-    ax3 = Axis3(fig[1, 2]; title = "x velocity", xlabel = "x")
+    ax3 = Axis3(fig[2, 1]; title = "x velocity", xlabel = "x")
     surface!(ax3, xl, yl, (@lift sol($tlift)[2, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
-    ax3 = Axis3(fig[1, 3]; title = "y velocity", xlabel = "x")
+    ax3 = Axis3(fig[2, 2]; title = "y velocity", xlabel = "x")
     surface!(ax3, xl, yl, (@lift sol($tlift)[3, :, :] ./ sol($tlift)[1, :, :]); interpolate)
 
-    ax4 = Axis3(fig[1, 4]; title = "pressure", xlabel = "x")
+    ax4 = Axis3(fig[1, 2]; title = "pressure", xlabel = "x")
     surface!(
         ax4,
         xl,
