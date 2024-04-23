@@ -112,21 +112,45 @@ function solve_riemann_problem!(
 )
     (; Nx, Ny) = prob.grid
 
+    ρ = @view wreconstructed[1, :, :, :]
+    vx = @view wreconstructed[2, :, :, :]
+    vy = @view wreconstructed[3, :, :, :]
+    P = @view wreconstructed[4, :, :, :]
+
     for i in 1:Nx, j in 1:Ny
+        ip = i == Nx ? 1 : i + 1
+        jp = j == Ny ? 1 : j + 1
+
         # Solve the Riemann problem on the right cell boundary.
         n = (; x = 1, y = 0)
 
-        (; wL, wR) = get_primitive_variables_boundary(prob, wreconstructed, i, j, n)
+        rhoL = ρ[i, j, 2]
+        uL = vx[i, j, 2]
+        vL = vy[i, j, 2]
+        pL = P[i, j, 2]
+
+        rhoR = ρ[ip, j, 1]
+        uR = vx[ip, j, 1]
+        vR = vy[ip, j, 1]
+        pR = P[ip, j, 1]
 
         xfluxstore[:, i, j] .=
-            hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
+            hllc_riemann_solver(prob, rhoL, uL, vL, pL, rhoR, uR, vR, pR, n)
 
         # Solve the Riemann problem on the top cell boundary.
         n = (; x = 0, y = 1)
 
-        (; wL, wR) = get_primitive_variables_boundary(prob, wreconstructed, i, j, n)
+        rhoL = ρ[i, j, 4]
+        uL = vx[i, j, 4]
+        vL = vy[i, j, 4]
+        pL = P[i, j, 4]
+
+        rhoR = ρ[i, jp, 3]
+        uR = vx[i, jp, 3]
+        vR = vy[i, jp, 3]
+        pR = P[i, jp, 3]
 
         yfluxstore[:, i, j] .=
-            hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
+            hllc_riemann_solver(prob, rhoL, uL, vL, pL, rhoR, uR, vR, pR, n)
     end
 end

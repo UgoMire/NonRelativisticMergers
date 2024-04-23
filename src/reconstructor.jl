@@ -1,39 +1,3 @@
-function get_primitive_variables_boundary(prob, wr, i, j, n)
-    if n.x == 1 && n.y == 0
-        ip = i == prob.grid.Nx ? 1 : i + 1
-
-        wL = (
-            ρ = wr[1, i, j, 2],
-            vx = wr[2, i, j, 2],
-            vy = wr[3, i, j, 2],
-            P = wr[4, i, j, 2],
-        )
-        wR = (
-            ρ = wr[1, ip, j, 2],
-            vx = wr[2, ip, j, 2],
-            vy = wr[3, ip, j, 2],
-            P = wr[4, ip, j, 2],
-        )
-    elseif n.x == 0 && n.y == 1
-        jp = j == prob.grid.Ny ? 1 : j + 1
-
-        wL = (
-            ρ = wr[1, i, j, 4],
-            vx = wr[2, i, j, 4],
-            vy = wr[3, i, j, 4],
-            P = wr[4, i, j, 4],
-        )
-        wR = (
-            ρ = wr[1, i, jp, 3],
-            vx = wr[2, i, jp, 3],
-            vy = wr[3, i, jp, 3],
-            P = wr[4, i, jp, 3],
-        )
-    end
-
-    return (; wL, wR)
-end
-
 function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
     (; Nx) = prob.grid
 
