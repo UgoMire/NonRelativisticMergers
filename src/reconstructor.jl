@@ -1,4 +1,4 @@
-function get_primitive_variables_boundary(prob, wr, i, j, n)
+function get_primitive_variables_at_boundary(prob, wr, i, j, n)
     if n.x == 1 && n.y == 0
         ip = i == prob.grid.Nx ? 1 : i + 1
 

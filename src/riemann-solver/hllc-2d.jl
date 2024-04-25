@@ -116,7 +116,7 @@ function solve_riemann_problem!(
         # Solve the Riemann problem on the right cell boundary.
         n = (; x = 1, y = 0)
 
-        (; wL, wR) = get_primitive_variables_boundary(prob, wreconstructed, i, j, n)
+        (; wL, wR) = get_primitive_variables_at_boundary(prob, wreconstructed, i, j, n)
 
         xfluxstore[:, i, j] .=
             hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
@@ -124,7 +124,7 @@ function solve_riemann_problem!(
         # Solve the Riemann problem on the top cell boundary.
         n = (; x = 0, y = 1)
 
-        (; wL, wR) = get_primitive_variables_boundary(prob, wreconstructed, i, j, n)
+        (; wL, wR) = get_primitive_variables_at_boundary(prob, wreconstructed, i, j, n)
 
         yfluxstore[:, i, j] .=
             hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
