@@ -1,5 +1,5 @@
 function hllc_wavespeed_estimate(
-    prob::FDProblem{Grid2D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid2D,<:Any,<:Any,HLLC},
     rhoL,
     uL,
     vL,
@@ -40,7 +40,7 @@ function hllc_wavespeed_estimate(
 end
 
 function hllc_riemann_solver(
-    prob::FDProblem{Grid2D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid2D,<:Any,<:Any,HLLC},
     rhoL,
     uL,
     vL,
@@ -104,8 +104,11 @@ function hllc_riemann_solver(
     return F_HLLC
 end
 
+hllc_riemann_solver(prob::FDProblem{Grid2D,Euler,<:Any,HLLC}, wL, wR, n) =
+    hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
+
 function solve_riemann_problem!(
-    prob::FDProblem{Grid2D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid2D,<:Any,<:Any,HLLC},
     xfluxstore,
     yfluxstore,
     wreconstructed,
@@ -118,15 +121,13 @@ function solve_riemann_problem!(
 
         (; wL, wR) = get_primitive_variables_at_boundary(prob, wreconstructed, i, j, n)
 
-        xfluxstore[:, i, j] .=
-            hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
+        xfluxstore[:, i, j] .= hllc_riemann_solver(prob, wL, wR, n)
 
         # Solve the Riemann problem on the top cell boundary.
         n = (; x = 0, y = 1)
 
         (; wL, wR) = get_primitive_variables_at_boundary(prob, wreconstructed, i, j, n)
 
-        yfluxstore[:, i, j] .=
-            hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
+        yfluxstore[:, i, j] .= hllc_riemann_solver(prob, wL, wR, n)
     end
 end
