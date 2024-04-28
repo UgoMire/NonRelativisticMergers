@@ -1,5 +1,5 @@
 function hllc_wavespeed_estimate(
-    prob::FDProblem{Grid1D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
     rhoL,
     vL,
     pL,
@@ -31,7 +31,7 @@ function hllc_wavespeed_estimate(
 end
 
 function hllc_riemann_solver(
-    prob::FDProblem{Grid1D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
     rhoL,
     vL,
     pL,
@@ -81,7 +81,7 @@ function hllc_riemann_solver(
 end
 
 function solve_riemann_problem!(
-    prob::FDProblem{Grid1D,Euler,<:Any,HLLC},
+    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
     fluxstore,
     wreconstructed,
 )

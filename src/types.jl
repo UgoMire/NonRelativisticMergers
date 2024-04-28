@@ -23,6 +23,7 @@ struct Grid1D <: Grid
         new(xmin, xmax, Nx, Δx, xl)
     end
 end
+
 struct Grid2D <: Grid
     xmin::Float64
     xmax::Float64
@@ -47,10 +48,27 @@ struct Grid2D <: Grid
     end
 end
 
+"""
+    Euler(; γ = 5 / 3) <: FDModel
+
+Represent Euler's equation, with a polytropic equation of state ``P = ρ e (γ - 1)``.
+"""
 struct Euler <: FDModel
     γ::Float64
 
     Euler(; γ = 5 / 3) = new(γ)
+end
+
+"""
+    EulerStaticGravity(; γ = 5 / 3) <: FDModel
+
+Represent Euler's equation in a static external gravitational potential, with a polytropic 
+equation of state ``P = ρ e (γ - 1)``.
+"""
+struct EulerStaticGravity <: FDModel
+    γ::Float64
+
+    EulerStaticGravity(; γ = 5 / 3) = new(γ)
 end
 
 struct Constant <: Reconstructor end

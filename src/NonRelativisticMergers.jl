@@ -12,6 +12,7 @@ export Grid2D
 
 # Fluid dynamics models.
 export Euler
+export EulerStaticGravity
 
 # Reconstruction methods.
 export Constant

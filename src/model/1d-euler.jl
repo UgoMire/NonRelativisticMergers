@@ -1,4 +1,8 @@
-function get_primitive_variables(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, u, i)
+function get_primitive_variables(
+    prob::FDProblem{Grid1D,<:Union{Euler,EulerStaticGravity},<:Any,<:Any},
+    u,
+    i,
+)
     (; γ) = prob.model
 
     ρ = u[1, i]
@@ -8,7 +12,12 @@ function get_primitive_variables(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, u, i
     return ρ, v, p
 end
 
-function flux(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ, v, p)
+function flux(
+    prob::FDProblem{Grid1D,<:Union{Euler,EulerStaticGravity},<:Any,<:Any},
+    ρ,
+    v,
+    p,
+)
     (; γ) = prob.model
 
     return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
@@ -32,7 +41,12 @@ function euler1d!(du, u, p, t)
     end
 end
 
-function setup_initial_state(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l)
+function setup_initial_state(
+    prob::FDProblem{Grid1D,<:Union{Euler,EulerStaticGravity},<:Any,<:Any},
+    ρ0l,
+    v0l,
+    p0l,
+)
     (; Nx) = prob.grid
     (; γ) = prob.model
 
@@ -54,6 +68,89 @@ function solve(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
     fluxstore = DiffCache(zeros(3, Nx))
 
     prob = ODEProblem(euler1d!, u0, tspan, (; prob, wstore, fluxstore))
+
+    sol = OrdinaryDiffEq.solve(
+        prob,
+        # Tsit5();
+        # TRBDF2();
+        AutoTsit5(Rosenbrock23());
+        # QNDF();
+        saveat = range(tspan[1], tspan[2]; length = 100),
+        abstol = 1e-8,
+        reltol = 1e-8,
+        progress = true,
+        progress_steps = 100,
+    )
+
+    return sol
+end
+
+function get_source!(
+    prob::FDProblem{Grid1D,EulerStaticGravity,<:Any,<:Any},
+    sourcestore,
+    u,
+    ϕ,
+)
+    (; Nx, Δx) = prob.grid
+
+    for i in 1:Nx
+        ip = i == Nx ? 1 : i + 1
+        im = i == 1 ? Nx : i - 1
+
+        dϕdx = (ϕ[ip] - ϕ[im]) / 2Δx
+
+        sourcestore[2, i] = -u[1] * dϕdx
+        sourcestore[3, i] = -u[2] * dϕdx
+    end
+end
+
+function euler1d_self_gravity!(du, u, p, t)
+    (; prob, wstore, fluxstore, sourcestore, ϕext) = p
+    (; Nx, Δx) = prob.grid
+
+    # wstore = get_tmp(wstore, u)
+    # fluxstore = get_tmp(fluxstore, u)
+    # sourcestore = get_tmp(sourcestore, u)
+
+    reconstruct!(prob, wstore, u)
+
+    solve_riemann_problem!(prob, fluxstore, wstore)
+
+    get_source!(prob, sourcestore, u, ϕext)
+
+    for i in 1:Nx
+        im = i == 1 ? Nx : i - 1
+
+        @. du[:, i] = -(fluxstore[:, i] - fluxstore[:, im]) / Δx + sourcestore[:, i]
+    end
+end
+
+function solve(
+    prob::FDProblem{Grid1D,EulerStaticGravity,<:Any,<:Any},
+    ρ0l,
+    v0l,
+    P0l,
+    ϕext,
+    tspan,
+)
+    (; Nx) = prob.grid
+
+    u0 = setup_initial_state(prob, ρ0l, v0l, P0l)
+
+    wstore = zeros(3, Nx, 2)
+    fluxstore = zeros(3, Nx)
+    sourcestore = zeros(3, Nx)
+
+    # wstore = DiffCache(zeros(3, Nx, 2))
+    # fluxstore = DiffCache(zeros(3, Nx))
+    # sourcestore = DiffCache(zeros(3, Nx))
+
+    prob = ODEProblem(
+        euler1d_self_gravity!,
+        u0,
+        tspan,
+        (; prob, wstore, fluxstore, sourcestore, ϕext),
+    )
 
     sol = OrdinaryDiffEq.solve(
         prob,
