@@ -31,7 +31,6 @@ function euler1d!(du, u, p, t)
     fluxstore = get_tmp(fluxstore, u)
 
     reconstruct!(prob, wstore, u)
-
     solve_riemann_problem!(prob, fluxstore, wstore)
 
     for j in 1:3, i in 1:Nx
@@ -108,14 +107,12 @@ function euler1d_self_gravity!(du, u, p, t)
     (; prob, wstore, fluxstore, sourcestore, ϕext) = p
     (; Nx, Δx) = prob.grid
 
-    # wstore = get_tmp(wstore, u)
-    # fluxstore = get_tmp(fluxstore, u)
-    # sourcestore = get_tmp(sourcestore, u)
+    wstore = get_tmp(wstore, u)
+    fluxstore = get_tmp(fluxstore, u)
+    sourcestore = get_tmp(sourcestore, u)
 
     reconstruct!(prob, wstore, u)
-
     solve_riemann_problem!(prob, fluxstore, wstore)
-
     get_source!(prob, sourcestore, u, ϕext)
 
     for i in 1:Nx
@@ -141,9 +138,9 @@ function solve(
     fluxstore = zeros(3, Nx)
     sourcestore = zeros(3, Nx)
 
-    # wstore = DiffCache(zeros(3, Nx, 2))
-    # fluxstore = DiffCache(zeros(3, Nx))
-    # sourcestore = DiffCache(zeros(3, Nx))
+    wstore = DiffCache(zeros(3, Nx, 2))
+    fluxstore = DiffCache(zeros(3, Nx))
+    sourcestore = DiffCache(zeros(3, Nx))
 
     prob = ODEProblem(
         euler1d_self_gravity!,
@@ -154,9 +151,9 @@ function solve(
 
     sol = OrdinaryDiffEq.solve(
         prob,
-        # Tsit5();
+        Tsit5();
         # TRBDF2();
-        AutoTsit5(Rosenbrock23());
+        # AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
         abstol = 1e-8,
