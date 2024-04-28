@@ -4,7 +4,7 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid1D(; xmin = -1, xmax = 2, Nx = 300)
+gd = Grid1D(; xmin = -1, xmax = 2, Nx = 600)
 
 # ρ0l = ones(gd.Nx)
 # ρ0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.5)^2), gd.xl)
@@ -36,7 +36,7 @@ prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
 
 sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
-plot_euler(sol, gd)
+plot_euler(prob, sol)
 
 ##
 u0 = zeros(3, gd.Nx)

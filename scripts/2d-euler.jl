@@ -4,12 +4,8 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 200, Ny = 200)
-gd = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 200, Ny = 200)
+gd = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 100, Ny = 100)
 
-ρ0 = [1.0 for x in gd.xl, y in gd.yl]
-# ρ0 = [1.0 + exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
-# ρ0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
 ρ0 = [1.0 for x in gd.xl, y in gd.yl]
 # ρ0 = [1.0 + exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 # ρ0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
@@ -35,8 +31,6 @@ tspan = (0, 1.150)
 # reconstructor = Constant()
 reconstructor = KT()
 
-# riemannsolver = NaiveRS()
-riemannsolver = HLLC()
 # riemannsolver = NaiveRS()
 riemannsolver = HLLC()
 
