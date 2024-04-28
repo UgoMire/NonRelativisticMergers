@@ -1,4 +1,8 @@
-function plot_euler(sol, gd)
+function plot_euler(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, sol)
+    (; grid, model) = prob
+    (; xl) = grid
+    (; γ) = model
+
     u0 = sol.u[1]
     tspan = (sol.t[1], sol.t[end])
 
@@ -8,32 +12,70 @@ function plot_euler(sol, gd)
     tlift = sg.sliders[1].value
 
     ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x")
-    lines!(ax1, gd.xl, u0[1, :])
-    lines!(ax1, gd.xl, (@lift sol($tlift)[1, :]))
+    lines!(ax1, xl, u0[1, :])
+    lines!(ax1, xl, (@lift sol($tlift)[1, :]))
 
     ax2 = Axis(fig[1, 2]; title = "velocity", xlabel = "x")
-    lines!(ax2, gd.xl, u0[2, :] ./ u0[1, :])
-    lines!(ax2, gd.xl, (@lift sol($tlift)[2, :] ./ sol($tlift)[1, :]))
+    lines!(ax2, xl, u0[2, :] ./ u0[1, :])
+    lines!(ax2, xl, (@lift sol($tlift)[2, :] ./ sol($tlift)[1, :]))
 
     ax3 = Axis(fig[1, 3]; title = "pressure", xlabel = "x")
-    lines!(ax3, gd.xl, (5 / 3 - 1) * (u0[3, :] .- 1 / 2 * u0[1, :] .* u0[2, :] .^ 2))
+    lines!(ax3, xl, (γ - 1) * (u0[3, :] .- 1 / 2 * u0[1, :] .* u0[2, :] .^ 2))
     lines!(
         ax3,
-        gd.xl,
-        (@lift (5 / 3 - 1) *
+        xl,
+        (@lift (γ - 1) *
                (sol($tlift)[3, :] .- 1 / 2 * sol($tlift)[1, :] .* sol($tlift)[2, :] .^ 2)),
     )
 
-    on(tlift) do val
-        autolimits!(ax1)
-        autolimits!(ax2)
-        autolimits!(ax3)
+    on(tlift) do _
+        autolimits!.(filter(x -> typeof(x) == Axis, fig.content))
     end
 
     return fig
 end
 
-function plot_euler2d(prob, sol; interpolate = true)
+function plot_euler(prob::FDProblem{Grid1D,EulerStaticGravity,<:Any,<:Any}, sol, ϕ)
+    (; grid, model) = prob
+    (; xl) = grid
+    (; γ) = model
+
+    u0 = sol.u[1]
+    tspan = (sol.t[1], sol.t[end])
+
+    fig = Figure(; size = (1200, 400))
+
+    sg = SliderGrid(fig[2, 1], (label = "t", range = range(tspan[1], tspan[2], 100)))
+    tlift = sg.sliders[1].value
+
+    ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x")
+    lines!(ax1, xl, u0[1, :])
+    lines!(ax1, xl, (@lift sol($tlift)[1, :]))
+    lines!(ax1, xl, ϕ)
+
+    ax2 = Axis(fig[1, 2]; title = "velocity", xlabel = "x")
+    lines!(ax2, xl, u0[2, :] ./ u0[1, :])
+    lines!(ax2, xl, (@lift sol($tlift)[2, :] ./ sol($tlift)[1, :]))
+    lines!(ax2, xl, ϕ)
+
+    ax3 = Axis(fig[1, 3]; title = "pressure", xlabel = "x")
+    lines!(ax3, xl, (γ - 1) * (u0[3, :] .- 1 / 2 * u0[1, :] .* u0[2, :] .^ 2))
+    lines!(
+        ax3,
+        xl,
+        (@lift (γ - 1) *
+               (sol($tlift)[3, :] .- 1 / 2 * sol($tlift)[1, :] .* sol($tlift)[2, :] .^ 2)),
+    )
+    lines!(ax3, xl, ϕ)
+
+    on(tlift) do _
+        autolimits!.(filter(x -> typeof(x) == Axis, fig.content))
+    end
+
+    return fig
+end
+
+function plot_euler(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, sol; interpolate = true)
     (; xl, yl) = prob.grid
 
     tspan = (sol.t[1], sol.t[end])
