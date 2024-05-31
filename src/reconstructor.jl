@@ -128,7 +128,7 @@ end
 #     return w_reconstruct
 # end
 
-function minmod(a1, a2, a3)
+@inline @fastmath function minmod(a1, a2, a3)
     if a1 > 0 && a2 > 0 && a3 > 0
         return min(a1, a2, a3)
     elseif a1 < 0 && a1 < 0 && a3 < 0
@@ -138,44 +138,70 @@ function minmod(a1, a2, a3)
     end
 end
 
-function reconstruct!(prob::FDProblem{Grid1D,<:Any,KT,<:Any}, wstore, u)
-    (; Nx, Δx) = prob.grid
+@inline @fastmath function kt_reconstruction(prob, q, qp, qm)
     (; θ) = prob.reconstructor
-    (; γ) = prob.model
+    (; Δx) = prob.grid
+
+    Dq = minmod(θ * (q - qm) / Δx, (qp - qm) / 2Δx, θ * (qp - q) / Δx)
+
+    qL = q - Dq * Δx / 2
+    qR = q + Dq * Δx / 2
+
+    return qL, qR
+end
+
+@inline @fastmath function reconstruct!(
+    prob::FDProblem{GD,MD,RC,RS},
+    wstore,
+    u,
+) where {GD<:Grid1D,MD<:Euler,RC<:KT,RS<:Any}
+    (; Nx) = prob.grid
 
     for i in 1:Nx
         ip = i == Nx ? 1 : i + 1
         im = i == 1 ? Nx : i - 1
 
-        # Reconstruct the density.
-        rho = u[1, i]
-        rhop = u[1, ip]
-        rhom = u[1, im]
+        ρ, v, P = get_primitive_variables(prob, u, i)
+        ρm, vm, Pm = get_primitive_variables(prob, u, im)
+        ρp, vp, Pp = get_primitive_variables(prob, u, ip)
 
-        Drho = minmod(θ * (rho - rhom) / Δx, (rhop - rhom) / 2Δx, θ * (rhop - rho) / Δx)
+        # Reconstruct the density, x-velocity and pressure.
+        wstore[1, i, :] .= kt_reconstruction(prob, ρ, ρp, ρm)
+        wstore[2, i, :] .= kt_reconstruction(prob, v, vp, vm)
+        wstore[3, i, :] .= kt_reconstruction(prob, P, Pp, Pm)
+    end
+end
 
-        wstore[1, i, 1] = rho - Drho * Δx / 2
-        wstore[1, i, 2] = rho + Drho * Δx / 2
+function reconstruct!(prob::FDProblem{Grid1D,EulerStaticGravity,KT,<:Any}, wstore, u, ϕext)
+    (; Nx) = prob.grid
 
-        # Reconstruct the velocity.
-        v = u[2, i] / u[1, i]
-        vp = u[2, ip] / u[1, ip]
-        vm = u[2, im] / u[1, im]
+    for i in 1:Nx
+        ip = i == Nx ? 1 : i + 1
+        im = i == 1 ? Nx : i - 1
 
-        Dv = minmod(θ * (v - vm) / Δx, (vp - vm) / 2Δx, θ * (vp - v) / Δx)
+        ρ, v, P = get_primitive_variables(prob, u, i)
+        ρm, vm, Pm = get_primitive_variables(prob, u, im)
+        ρp, vp, Pp = get_primitive_variables(prob, u, ip)
 
-        wstore[2, i, 1] = v - Dv * Δx / 2
-        wstore[2, i, 2] = v + Dv * Δx / 2
+        # Reconstruct the density and x-velocity.
+        wstore[1, i, :] .= kt_reconstruction(prob, ρ, ρp, ρm)
+        wstore[2, i, :] .= kt_reconstruction(prob, v, vp, vm)
+        # wstore[3, i, :] .= kt_reconstruction(prob, P, Pp, Pm)
 
-        # Reconstruct the pressure.
-        P = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
-        Pp = (γ - 1) * (u[3, ip] - 1 / 2 * u[1, ip] * u[2, ip]^2)
-        Pm = (γ - 1) * (u[3, im] - 1 / 2 * u[1, im] * u[2, im]^2)
+        # Reconstruct the pressure with hydrostatic equilibrium preserving scheme.
+        ϕ, ϕp, ϕm = ϕext[i], ϕext[ip], ϕext[im]
 
-        Dp = minmod(θ * (P - Pm) / Δx, (Pp - Pm) / 2Δx, θ * (Pp - P) / Δx)
+        P0_left = P + ρ * (ϕ - ϕm) / 2
+        P0_right = P - ρ * (ϕp - ϕ) / 2
 
-        wstore[3, i, 1] = P - Dp * Δx / 2
-        wstore[3, i, 2] = P + Dp * Δx / 2
+        P1 = 0
+        P1m = Pm - P - (ρm + ρ) / 2 * (ϕ - ϕm)
+        P1p = Pp - P + (ρ + ρp) / 2 * (ϕp - ϕ)
+
+        P1_left, P1_right = kt_reconstruction(prob, P1, P1p, P1m)
+
+        wstore[3, i, 1] = P0_left + P1_left
+        wstore[3, i, 2] = P0_right + P1_right
     end
 end
 

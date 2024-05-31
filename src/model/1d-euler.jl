@@ -1,4 +1,4 @@
-function get_primitive_variables(
+@inline @fastmath function get_primitive_variables(
     prob::FDProblem{Grid1D,<:Union{Euler,EulerStaticGravity},<:Any,<:Any},
     u,
     i,
@@ -111,7 +111,7 @@ function euler1d_self_gravity!(du, u, p, t)
     fluxstore = get_tmp(fluxstore, u)
     sourcestore = get_tmp(sourcestore, u)
 
-    reconstruct!(prob, wstore, u)
+    reconstruct!(prob, wstore, u, ϕext)
     solve_riemann_problem!(prob, fluxstore, wstore)
     get_source!(prob, sourcestore, u, ϕext)
 
@@ -151,9 +151,9 @@ function solve(
 
     sol = OrdinaryDiffEq.solve(
         prob,
-        Tsit5();
+        # Tsit5();
         # TRBDF2();
-        # AutoTsit5(Rosenbrock23());
+        AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
         abstol = 1e-8,
