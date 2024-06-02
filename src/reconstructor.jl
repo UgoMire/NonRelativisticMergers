@@ -172,7 +172,12 @@ end
     end
 end
 
-function reconstruct!(prob::FDProblem{Grid1D,EulerStaticGravity,KT,<:Any}, wstore, u, ϕext)
+function reconstruct!(
+    prob::FDProblem{Grid1D,<:Union{EulerStaticGravity,EulerSelfGravity},KT,<:Any},
+    wstore,
+    u,
+    ϕext,
+)
     (; Nx) = prob.grid
 
     for i in 1:Nx

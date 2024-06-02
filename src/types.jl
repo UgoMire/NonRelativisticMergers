@@ -71,6 +71,22 @@ struct EulerStaticGravity <: FDModel
     EulerStaticGravity(; γ = 5 / 3) = new(γ)
 end
 
+"""
+    EulerSelfGravity(; γ = 5 / 3, G = 1) <: FDModel
+
+Represent Euler's equation with a polytropic equation of state ``P = ρ e (γ -
+1)`` subjected to its own gravitational potential.
+
+The gravitational potential is obtained by solving the Poisson equation `∇²ϕ(x)
+= 4π G ρ(x)` at each time step.
+"""
+struct EulerSelfGravity <: FDModel
+    γ::Float64
+    G::Float64
+
+    EulerSelfGravity(; γ = 5 / 3, G = 1) = new(γ, G)
+end
+
 struct Constant <: Reconstructor end
 struct MUSCL <: Reconstructor
     κ::Float64
