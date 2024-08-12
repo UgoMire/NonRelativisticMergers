@@ -156,7 +156,7 @@ function solve(
 end
 
 function euler1d_self_gravity!(du, u, p, t)
-    (; prob, wstore, fluxstore, sourcestore, potentialstore) = p
+    (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache) = p
     (; Nx, Δx) = prob.grid
 
     wstore = get_tmp(wstore, u)
@@ -164,7 +164,7 @@ function euler1d_self_gravity!(du, u, p, t)
     sourcestore = get_tmp(sourcestore, u)
     potentialstore = get_tmp(potentialstore, u)
 
-    solve_poisson!(prob, potentialstore, u[1, :])
+    solve_poisson!(prob, potentialstore', u[1, :], fft_cache)
     reconstruct!(prob, wstore, u, potentialstore)
     solve_riemann_problem!(prob, fluxstore, wstore)
     get_source!(prob, sourcestore, u, potentialstore)
@@ -177,7 +177,8 @@ function euler1d_self_gravity!(du, u, p, t)
 end
 
 function solve(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ0l, v0l, P0l, tspan)
-    (; Nx) = prob.grid
+    (; grid) = prob
+    (; Nx) = grid
 
     u0 = setup_initial_state(prob, ρ0l, v0l, P0l)
 
@@ -186,18 +187,20 @@ function solve(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ0l, v0l, 
     sourcestore = DiffCache(zeros(3, Nx))
     potentialstore = DiffCache(zeros(1, Nx))
 
+    fft_cache = setup_fft_cache(grid)
+
     prob = ODEProblem(
         euler1d_self_gravity!,
         u0,
         tspan,
-        (; prob, wstore, fluxstore, sourcestore, potentialstore),
+        (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache),
     )
 
     sol = OrdinaryDiffEq.solve(
         prob,
-        # Tsit5();
+        Tsit5();
         # TRBDF2();
-        AutoTsit5(Rosenbrock23());
+        # AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
         abstol = 1e-8,

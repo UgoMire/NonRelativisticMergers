@@ -4,10 +4,11 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid1D(; xmin = -1, xmax = 2, Nx = 500)
+gd = Grid1D(; xmin = -1, xmax = 1, Nx = 500)
 
 # ρ0l = ones(gd.Nx)
-ρ0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.5)^2), gd.xl)
+# ρ0l = 0.1 .+ map(x -> 2 * exp(-100 * (x - 0.5)^2), gd.xl)
+ρ0l = 1 .+ map(x -> 2 * (exp(-100 * (x - 0.5)^2) + exp(-100 * (x + 0.5)^2)), gd.xl)
 # ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
@@ -17,7 +18,8 @@ v0l = zeros(gd.Nx)
 # p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
 # p0l = 0.1 .+ map(x -> 1.8 * exp(-100 * (x - 0.5)^2), gd.xl)
-p0l = 1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+# p0l = 1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
+p0l = 2 .+ map(x -> 2 * exp(-100 * (x - 0.5)^2) + exp(-100 * (x + 0.5)^2), gd.xl)
 # p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
 
 tspan = (0, 1)
@@ -29,7 +31,7 @@ reconstructor = KT()
 # riemannsolver = NaiveRS()
 riemannsolver = HLLC()
 
-model = EulerSelfGravity()
+model = EulerSelfGravity(; G = 10)
 
 prob = FDProblem(gd, model, reconstructor, riemannsolver)
 
