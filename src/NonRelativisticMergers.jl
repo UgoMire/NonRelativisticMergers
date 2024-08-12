@@ -1,8 +1,10 @@
 module NonRelativisticMergers
 
+using FFTW
 using Makie
 using OrdinaryDiffEq
 using PreallocationTools
+using LinearAlgebra
 
 export FDProblem
 
