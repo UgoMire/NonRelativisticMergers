@@ -34,7 +34,9 @@ export plot_reconstruction
 
 include("types.jl")
 
-include("reconstructor.jl")
+include("reconstructor/constant.jl")
+include("reconstructor/muscl.jl")
+include("reconstructor/kt.jl")
 
 include("riemann-solver/naive.jl")
 include("riemann-solver/hllc-1d.jl")
