@@ -82,9 +82,10 @@ The gravitational potential is obtained by solving the Poisson equation `∇²ϕ
 """
 struct EulerSelfGravity <: FDModel
     γ::Float64
-    G::Float64
+    G::Float64 # Gravitational constant.
+    ϵ::Float64 # Thickness of the density profile, to approach 3d gravity.
 
-    EulerSelfGravity(; γ = 5 / 3, G = 1) = new(γ, G)
+    EulerSelfGravity(; γ = 5 / 3, G = 1, ϵ = 10) = new(γ, G, ϵ)
 end
 
 struct Constant <: Reconstructor end
