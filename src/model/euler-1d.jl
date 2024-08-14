@@ -1,8 +1,8 @@
 @inline @fastmath function get_primitive_variables(
-    prob::FDProblem{Grid1D,<:FDModel,<:Any,<:Any},
-    u,
-    i;
-    ρmin = 0.01,
+        prob::FDProblem{Grid1D, <:FDModel, <:Any, <:Any},
+        u,
+        i;
+        ρmin = 0.01
 )
     (; γ) = prob.model
 
@@ -18,7 +18,7 @@
     return ρ, v, p
 end
 
-function flux(prob::FDProblem{Grid1D,<:FDModel,<:Any,<:Any}, ρ, v, p)
+function flux(prob::FDProblem{Grid1D, <:FDModel, <:Any, <:Any}, ρ, v, p)
     (; γ) = prob.model
 
     return (ρ * v, ρ * v^2 + p, (p / (γ - 1) + 1 / 2 * ρ * v^2 + p) * v)
@@ -41,7 +41,8 @@ function euler1d!(du, u, p, t)
     end
 end
 
-function setup_initial_state(prob::FDProblem{Grid1D,<:FDModel,<:Any,<:Any}, ρ0l, v0l, p0l)
+function setup_initial_state(
+        prob::FDProblem{Grid1D, <:FDModel, <:Any, <:Any}, ρ0l, v0l, p0l)
     (; Nx) = prob.grid
     (; γ) = prob.model
 
@@ -54,7 +55,7 @@ function setup_initial_state(prob::FDProblem{Grid1D,<:FDModel,<:Any,<:Any}, ρ0l
     return u0
 end
 
-function solve(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
+function solve(prob::FDProblem{Grid1D, Euler, <:Any, <:Any}, ρ0l, v0l, p0l, tspan)
     (; Nx) = prob.grid
 
     u0 = setup_initial_state(prob, ρ0l, v0l, p0l)
@@ -74,17 +75,18 @@ function solve(prob::FDProblem{Grid1D,Euler,<:Any,<:Any}, ρ0l, v0l, p0l, tspan)
         abstol = 1e-8,
         reltol = 1e-8,
         progress = true,
-        progress_steps = 100,
+        progress_steps = 100
     )
 
     return sol
 end
 
 function get_source!(
-    prob::FDProblem{Grid1D,<:Union{EulerStaticGravity,EulerSelfGravity},<:Any,<:Any},
-    sourcestore,
-    u,
-    ϕ,
+        prob::FDProblem{
+            Grid1D, <:Union{EulerStaticGravity, EulerSelfGravity}, <:Any, <:Any},
+        sourcestore,
+        u,
+        ϕ
 )
     (; Nx, Δx) = prob.grid
 
@@ -119,12 +121,12 @@ function euler1d_static_gravity!(du, u, p, t)
 end
 
 function solve(
-    prob::FDProblem{Grid1D,EulerStaticGravity,<:Any,<:Any},
-    ρ0l,
-    v0l,
-    P0l,
-    ϕext,
-    tspan,
+        prob::FDProblem{Grid1D, EulerStaticGravity, <:Any, <:Any},
+        ρ0l,
+        v0l,
+        P0l,
+        ϕext,
+        tspan
 )
     (; Nx) = prob.grid
 
@@ -142,7 +144,7 @@ function solve(
         euler1d_static_gravity!,
         u0,
         tspan,
-        (; prob, wstore, fluxstore, sourcestore, ϕext),
+        (; prob, wstore, fluxstore, sourcestore, ϕext)
     )
 
     sol = OrdinaryDiffEq.solve(
@@ -155,7 +157,7 @@ function solve(
         abstol = 1e-8,
         reltol = 1e-8,
         progress = true,
-        progress_steps = 100,
+        progress_steps = 100
     )
 
     return sol
@@ -182,7 +184,8 @@ function euler1d_self_gravity!(du, u, p, t)
     end
 end
 
-function solve(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ0l, v0l, P0l, tspan)
+function solve(
+        prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any}, ρ0l, v0l, P0l, tspan)
     (; grid) = prob
     (; Nx) = grid
 
@@ -199,7 +202,7 @@ function solve(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ0l, v0l, 
         euler1d_self_gravity!,
         u0,
         tspan,
-        (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache),
+        (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache)
     )
 
     sol = OrdinaryDiffEq.solve(
@@ -212,7 +215,7 @@ function solve(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ0l, v0l, 
         abstol = 1e-8,
         reltol = 1e-8,
         progress = true,
-        progress_steps = 100,
+        progress_steps = 100
     )
 
     return sol

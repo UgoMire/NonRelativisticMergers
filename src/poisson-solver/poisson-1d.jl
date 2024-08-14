@@ -1,7 +1,7 @@
 function solve_poisson!(
-    prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any},
-    potentialstore,
-    ρ,
+        prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any},
+        potentialstore,
+        ρ
 )
     (; grid, model) = prob
     (; Nx, Δx) = grid
@@ -25,7 +25,7 @@ function solve_poisson!(
     potentialstore .= real(ifft(uhat))
 end
 
-function solve_poisson(prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any}, ρ)
+function solve_poisson(prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any}, ρ)
     (; grid) = prob
     (; Nx) = grid
 
@@ -46,23 +46,23 @@ function setup_fft_cache(grid::Grid1D)
         ρhat_cache = zeros(ComplexF64, Nx),
         uhat_cache = zeros(ComplexF64, Nx),
         planned_fft = plan_fft(zeros(Nx)),
-        planned_ifft = plan_ifft(zeros(Nx)),
+        planned_ifft = plan_ifft(zeros(Nx))
     )
 end
 
 function solve_poisson!(
-    prob::FDProblem{Grid1D,EulerSelfGravity,<:Any,<:Any},
-    potentialstore,
-    ρ,
-    (;
-        kx,
-        planned_fft,
-        planned_ifft,
-        ρhat_cache,
-        uhat_cache,
-        ρ_complex,
-        potentialstore_complex,
-    ),
+        prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any},
+        potentialstore,
+        ρ,
+        (;
+            kx,
+            planned_fft,
+            planned_ifft,
+            ρhat_cache,
+            uhat_cache,
+            ρ_complex,
+            potentialstore_complex
+        )
 )
     (; model) = prob
     (; G, ϵ) = model

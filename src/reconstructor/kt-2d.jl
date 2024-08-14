@@ -1,4 +1,4 @@
-function reconstruct!(prob::FDProblem{Grid2D,<:Any,KT,<:Any}, wstore, u)
+function reconstruct!(prob::FDProblem{Grid2D, <:Any, KT, <:Any}, wstore, u)
     (; Nx, Ny, Δx, Δy) = prob.grid
     (; θ) = prob.reconstructor
 

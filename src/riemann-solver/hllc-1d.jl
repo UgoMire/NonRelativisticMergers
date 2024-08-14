@@ -1,11 +1,11 @@
 function hllc_wavespeed_estimate(
-    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
-    rhoL,
-    vL,
-    pL,
-    rhoR,
-    vR,
-    pR,
+        prob::FDProblem{Grid1D, <:Any, <:Any, HLLC},
+        rhoL,
+        vL,
+        pL,
+        rhoR,
+        vR,
+        pR
 )
     (; γ) = prob.model
 
@@ -23,21 +23,20 @@ function hllc_wavespeed_estimate(
 
     SL = min(vL - cL, vtilde - ctilde)
     SR = max(vR + cR, vtilde + ctilde)
-    SM =
-        (rhoR * vR * (SR - vR) - rhoL * vL * (SL - vL) + pL - pR) /
-        (rhoR * (SR - vR) - rhoL * (SL - vL))
+    SM = (rhoR * vR * (SR - vR) - rhoL * vL * (SL - vL) + pL - pR) /
+         (rhoR * (SR - vR) - rhoL * (SL - vL))
 
     return (; SL, SR, SM)
 end
 
 function hllc_riemann_solver(
-    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
-    rhoL,
-    vL,
-    pL,
-    rhoR,
-    vR,
-    pR,
+        prob::FDProblem{Grid1D, <:Any, <:Any, HLLC},
+        rhoL,
+        vL,
+        pL,
+        rhoR,
+        vR,
+        pR
 )
     (; γ) = prob.model
 
@@ -81,9 +80,9 @@ function hllc_riemann_solver(
 end
 
 function solve_riemann_problem!(
-    prob::FDProblem{Grid1D,<:Any,<:Any,HLLC},
-    fluxstore,
-    wreconstructed,
+        prob::FDProblem{Grid1D, <:Any, <:Any, HLLC},
+        fluxstore,
+        wreconstructed
 )
     (; Nx) = prob.grid
 

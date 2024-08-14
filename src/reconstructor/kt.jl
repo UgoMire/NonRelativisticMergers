@@ -6,13 +6,13 @@ function get_primitive_variables_at_boundary(prob, wr, i, j, n)
             ρ = wr[1, i, j, 2],
             vx = wr[2, i, j, 2],
             vy = wr[3, i, j, 2],
-            P = wr[4, i, j, 2],
+            P = wr[4, i, j, 2]
         )
         wR = (
             ρ = wr[1, ip, j, 2],
             vx = wr[2, ip, j, 2],
             vy = wr[3, ip, j, 2],
-            P = wr[4, ip, j, 2],
+            P = wr[4, ip, j, 2]
         )
     elseif n.x == 0 && n.y == 1
         jp = j == prob.grid.Ny ? 1 : j + 1
@@ -21,13 +21,13 @@ function get_primitive_variables_at_boundary(prob, wr, i, j, n)
             ρ = wr[1, i, j, 4],
             vx = wr[2, i, j, 4],
             vy = wr[3, i, j, 4],
-            P = wr[4, i, j, 4],
+            P = wr[4, i, j, 4]
         )
         wR = (
             ρ = wr[1, i, jp, 3],
             vx = wr[2, i, jp, 3],
             vy = wr[3, i, jp, 3],
-            P = wr[4, i, jp, 3],
+            P = wr[4, i, jp, 3]
         )
     end
 
@@ -57,10 +57,10 @@ end
 end
 
 @inline @fastmath function reconstruct!(
-    prob::FDProblem{GD,MD,RC,RS},
-    wstore,
-    u,
-) where {GD<:Grid1D,MD<:Euler,RC<:KT,RS<:Any}
+        prob::FDProblem{GD, MD, RC, RS},
+        wstore,
+        u
+) where {GD <: Grid1D, MD <: Euler, RC <: KT, RS <: Any}
     (; Nx) = prob.grid
 
     for i in 1:Nx
@@ -79,10 +79,10 @@ end
 end
 
 @inline @fastmath function reconstruct!(
-    prob::FDProblem{Grid1D,<:Union{EulerStaticGravity,EulerSelfGravity},KT,<:Any},
-    wstore,
-    u,
-    ϕext,
+        prob::FDProblem{Grid1D, <:Union{EulerStaticGravity, EulerSelfGravity}, KT, <:Any},
+        wstore,
+        u,
+        ϕext
 )
     (; Nx) = prob.grid
 
@@ -116,7 +116,7 @@ end
     end
 end
 
-function reconstruct!(prob::FDProblem{Grid2D,<:Any,KT,<:Any}, wstore, u)
+function reconstruct!(prob::FDProblem{Grid2D, <:Any, KT, <:Any}, wstore, u)
     (; Nx, Ny, Δx, Δy) = prob.grid
     (; θ) = prob.reconstructor
 

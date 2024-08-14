@@ -1,4 +1,4 @@
-function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
+function reconstruct!(prob::FDProblem{Grid1D, <:Any, Constant, <:Any}, wstore, u)
     (; Nx) = prob.grid
 
     for i in 1:Nx
@@ -21,7 +21,7 @@ function reconstruct!(prob::FDProblem{Grid1D,<:Any,Constant,<:Any}, wstore, u)
     end
 end
 
-function reconstruct!(prob::FDProblem{Grid2D,<:Any,Constant,<:Any}, wstore, u)
+function reconstruct!(prob::FDProblem{Grid2D, <:Any, Constant, <:Any}, wstore, u)
     (; Nx, Ny) = prob.grid
 
     for ix in 1:Nx, iy in 1:Ny

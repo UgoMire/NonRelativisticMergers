@@ -1,7 +1,7 @@
 function solve_riemann_problem!(
-    prob::FDProblem{Grid1D,<:Any,<:Any,NaiveRS},
-    fluxstore,
-    wreconstructed,
+        prob::FDProblem{Grid1D, <:Any, <:Any, NaiveRS},
+        fluxstore,
+        wreconstructed
 )
     (; Nx) = prob.grid
 
@@ -12,13 +12,13 @@ function solve_riemann_problem!(
             prob,
             wreconstructed[1, i, 2],
             wreconstructed[2, i, 2],
-            wreconstructed[3, i, 2],
+            wreconstructed[3, i, 2]
         )
         Fplus = flux(
             prob,
             wreconstructed[1, ip, 1],
             wreconstructed[2, ip, 1],
-            wreconstructed[3, ip, 1],
+            wreconstructed[3, ip, 1]
         )
 
         @. fluxstore[:, i] = 1 / 2 * (Fminux + Fplus)
@@ -26,10 +26,10 @@ function solve_riemann_problem!(
 end
 
 function solve_riemann_problem!(
-    prob::FDProblem{Grid2D,<:Any,<:Any,NaiveRS},
-    xfluxstore,
-    yfluxstore,
-    w,
+        prob::FDProblem{Grid2D, <:Any, <:Any, NaiveRS},
+        xfluxstore,
+        yfluxstore,
+        w
 )
     (; Nx, Ny) = prob.grid
 

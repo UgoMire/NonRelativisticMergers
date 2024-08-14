@@ -3,7 +3,7 @@ abstract type FDModel end
 abstract type Reconstructor end
 abstract type RiemannSolver end
 
-struct FDProblem{GD<:Grid,MD<:FDModel,RC<:Reconstructor,RS<:RiemannSolver}
+struct FDProblem{GD <: Grid, MD <: FDModel, RC <: Reconstructor, RS <: RiemannSolver}
     grid::GD
     model::MD
     reconstructor::RC
