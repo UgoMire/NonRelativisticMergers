@@ -46,7 +46,9 @@ include("poisson-solver/poisson-1d.jl")
 include("poisson-solver/poisson-2d.jl")
 
 include("model/euler-1d.jl")
+include("model/euler-1d-gravity.jl")
 include("model/euler-2d.jl")
+include("model/euler-2d-gravity.jl")
 
 include("plot.jl")
 

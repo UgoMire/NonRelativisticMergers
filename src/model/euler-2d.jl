@@ -83,18 +83,11 @@ function solve(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ0, vx0, vy0, P0, 
     xfluxstore = zeros(4, Nx, Ny)
     yfluxstore = zeros(4, Nx, Ny)
 
-    # wstore = DiffCache(zeros(4, Nx, Ny, 2))
-    # xfluxstore = DiffCache(zeros(4, Nx, Ny))
-    # yfluxstore = DiffCache(zeros(4, Nx, Ny))
-
     prob = ODEProblem(euler2d!, u0, tspan, (; prob, wstore, xfluxstore, yfluxstore))
 
     sol = OrdinaryDiffEq.solve(
         prob,
         Tsit5();
-        # TRBDF2();
-        # AutoTsit5(Rosenbrock23());
-        # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
         # saveat = [],
         abstol = 1e-8,
