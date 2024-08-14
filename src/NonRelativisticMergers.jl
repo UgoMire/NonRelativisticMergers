@@ -40,10 +40,11 @@ include("riemann-solver/naive.jl")
 include("riemann-solver/hllc-1d.jl")
 include("riemann-solver/hllc-2d.jl")
 
-include("poisson.jl")
+include("poisson-solver/poisson-1d.jl")
+include("poisson-solver/poisson-2d.jl")
 
-include("model/1d-euler.jl")
-include("model/2d-euler.jl")
+include("model/euler-1d.jl")
+include("model/euler-2d.jl")
 
 include("plot.jl")
 

@@ -1,11 +1,17 @@
 @inline @fastmath function get_primitive_variables(
     prob::FDProblem{Grid1D,<:FDModel,<:Any,<:Any},
     u,
-    i,
+    i;
+    ρmin = 0.01,
 )
     (; γ) = prob.model
 
     ρ = u[1, i]
+
+    # if ρ < ρmin
+    #     return ρmin, 0, ρmin
+    # end
+
     v = u[2, i] / u[1, i]
     p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
 
