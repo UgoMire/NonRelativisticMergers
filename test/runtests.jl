@@ -3,7 +3,7 @@ using Test
 
 verbose = true
 
-@testset verbose = verbose "1d Euler - Hydrostatic flow is time independent" begin
+@testset verbose=verbose "1d Euler - Hydrostatic flow is time independent" begin
     grid = Grid1D(; xmin = 0, xmax = 1, Nx = 100)
 
     ρ0l = ones(grid.Nx)
@@ -28,7 +28,7 @@ verbose = true
     end
 end
 
-@testset verbose = verbose "2d flux functions are consistent" begin
+@testset verbose=verbose "2d flux functions are consistent" begin
     import NonRelativisticMergers: Fflux, Gflux, flux
 
     ρ = 2.2300
@@ -42,7 +42,7 @@ end
     @test all(Gflux(prob, ρ, vx, vy, P) .≈ flux(prob, ρ, vx, vy, P, (; x = 0, y = 1)))
 end
 
-@testset verbose = verbose "2d Euler - Hydrostatic flow is time independent" begin
+@testset verbose=verbose "2d Euler - Hydrostatic flow is time independent" begin
     grid = Grid2D(; xmin = 0, xmax = 1, ymin = 0, ymax = 1, Nx = 100, Ny = 100)
 
     ρ = ones(grid.Nx, grid.Ny)
@@ -61,8 +61,8 @@ end
         ρend = sol.u[end][1, :, :]
         vxend = sol.u[end][2, :, :] ./ ρend
         vyend = sol.u[end][3, :, :] ./ ρend
-        pend =
-            @. (sol.u[end][4, :, :] - 0.5 * ρend * (vxend^2 + vyend^2)) * (prob.model.γ - 1)
+        pend = @. (sol.u[end][4, :, :] - 0.5 * ρend * (vxend^2 + vyend^2)) *
+                  (prob.model.γ - 1)
 
         @test ρ ≈ ρend
         @test vx ≈ vxend
@@ -71,7 +71,7 @@ end
     end
 end
 
-@testset verbose = verbose "HLLC Riemann solver - 2d and 1d implementation agree" begin
+@testset verbose=verbose "HLLC Riemann solver - 2d and 1d implementation agree" begin
     import NonRelativisticMergers: setup_initial_state, reconstruct!, hllc_riemann_solver
 
     grid2d = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 100, Ny = 100)
@@ -98,7 +98,7 @@ end
         vy = @view wreconstructed[3, :, :, :]
         P = @view wreconstructed[4, :, :, :]
 
-        for i in 1:grid2d.Nx, j in 1:grid2d.Ny
+        for i in 1:(grid2d.Nx), j in 1:(grid2d.Ny)
             ip = i == grid2d.Nx ? 1 : i + 1
 
             rhoL = ρ[i, j, 2]

@@ -6,14 +6,14 @@ global_logger(TerminalLogger())
 
 gd = Grid2D(; xmin = -2, xmax = 2, ymin = -2, ymax = 2, Nx = 100, Ny = 100)
 
-ρ0 = [1.0 for x in gd.xl, y in gd.yl]
-# ρ0 = [1.0 + exp(-100 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+# ρ0 = [1.0 for x in gd.xl, y in gd.yl]
+# ρ0 = [1.0 + 10 * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 # ρ0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
 # ρ0 = [-0.2 < x < 0.2 && -0.2 < y < 0.2 ? 2.0 : 1.0 for x in gd.xl, y in gd.yl]
-# ρ0 = [1.0 + exp(-100 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
+ρ0 = [1.0 + exp(-10 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
 
-# vx0 = [0.0 for x in gd.xl, y in gd.yl]
-vx0 = [1.0 for x in gd.xl, y in gd.yl]
+vx0 = [0.0 for x in gd.xl, y in gd.yl]
+# vx0 = [1.0 for x in gd.xl, y in gd.yl]
 # vx0 = [1.0 - 10y * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 # vx0 = [-y / (2π * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 
@@ -22,11 +22,11 @@ vy0 = [0.0 for x in gd.xl, y in gd.yl]
 # vy0 = [x / (2π * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 
 # P0 = [1.0 for x in gd.xl, y in gd.yl]
-P0 = [1.0 + 10 * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+# P0 = [1.0 + 10 * exp(-10 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 # P0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
-# P0 = [1.0 + exp(-100 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
+P0 = [1.0 + exp(-10 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
 
-tspan = (0, 1.150)
+tspan = (0, 4.150)
 
 # reconstructor = Constant()
 reconstructor = KT()
@@ -38,7 +38,7 @@ prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
 
 sol = solve(prob, ρ0, vx0, vy0, P0, tspan);
 
-plot_euler2d(prob, sol)
+plot_euler(prob, sol; type = :heatmap)
 
 ## Benchmarking.
 # reconstructor = Constant()
@@ -66,7 +66,7 @@ p = (; prob, wstore, xfluxstore, yfluxstore)
     prob,
     (; ρ = 1, vx = 1, vy = 1, P = 1),
     (; ρ = 1, vx = 1, vy = 1, P = 1),
-    (; x = 1, y = 0),
+    (; x = 1, y = 0)
 )
 @code_warntype NonRelativisticMergers.hllc_riemann_solver(
     prob,
@@ -78,5 +78,5 @@ p = (; prob, wstore, xfluxstore, yfluxstore)
     1,
     1,
     1,
-    (; x = 1, y = 0),
+    (; x = 1, y = 0)
 )

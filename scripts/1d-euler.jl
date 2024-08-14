@@ -76,5 +76,5 @@ p = (; prob, wstore, fluxstore)
     du,
     u0,
     (; gd, model, wstore, fluxstore),
-    tspan[1],
+    tspan[1]
 )
