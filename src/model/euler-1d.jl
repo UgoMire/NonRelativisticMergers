@@ -172,7 +172,7 @@ function euler1d_self_gravity!(du, u, p, t)
     sourcestore = get_tmp(sourcestore, u)
     potentialstore = get_tmp(potentialstore, u)
 
-    solve_poisson!(prob, potentialstore', u[1, :], fft_cache)
+    solve_poisson!(prob, potentialstore, u[1, :], fft_cache)
     reconstruct!(prob, wstore, u, potentialstore)
     solve_riemann_problem!(prob, fluxstore, wstore)
     get_source!(prob, sourcestore, u, potentialstore)
@@ -194,7 +194,7 @@ function solve(
     wstore = DiffCache(zeros(3, Nx, 2))
     fluxstore = DiffCache(zeros(3, Nx))
     sourcestore = DiffCache(zeros(3, Nx))
-    potentialstore = DiffCache(zeros(1, Nx))
+    potentialstore = DiffCache(zeros(Nx))
 
     fft_cache = setup_fft_cache(grid)
 
