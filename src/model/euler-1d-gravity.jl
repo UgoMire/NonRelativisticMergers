@@ -125,7 +125,7 @@ function solve(
     sol = OrdinaryDiffEq.solve(
         prob,
         Tsit5();
-        # TRBDF2();
+        # TRBDF2(; autodiff = AutoFiniteDiff());
         # AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),
