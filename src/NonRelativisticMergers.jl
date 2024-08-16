@@ -1,10 +1,12 @@
 module NonRelativisticMergers
 
 using FFTW
+using LinearAlgebra
+using LinearSolve
 using Makie
+using NonlinearSolve
 using OrdinaryDiffEq
 using PreallocationTools
-using LinearAlgebra
 
 export FDProblem
 
@@ -28,9 +30,11 @@ export HLLC
 
 export solve
 
+# Utilities.
 export plot_euler
 export plot_euler2d
 export plot_reconstruction
+export get_static_pressure
 
 include("types.jl")
 
@@ -52,5 +56,6 @@ include("model/euler-2d-gravity.jl")
 
 include("utils/plot-1d.jl")
 include("utils/plot-2d.jl")
+include("utils/static-grav.jl")
 
 end
