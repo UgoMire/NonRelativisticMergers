@@ -48,6 +48,12 @@ function solve_poisson(
 end
 
 function setup_fft_cache(grid::Grid2D)
+    (; Nx, Ny) = grid
+
+    return setup_fft_cache(grid, zeros(Nx, Ny))
+end
+
+function setup_fft_cache(grid::Grid2D, ρ)
     (; Nx, Δx, Ny, Δy) = grid
 
     return (;
@@ -55,7 +61,7 @@ function setup_fft_cache(grid::Grid2D)
         ky = 2π * fftfreq(Ny, 1 / Δy),
         ρ̂_cache = zeros(ComplexF64, Nx ÷ 2 + 1, Ny),
         û_cache = zeros(ComplexF64, Nx ÷ 2 + 1, Ny),
-        planned_fft = plan_rfft(zeros(Nx, Ny)),
+        planned_fft = plan_rfft(ρ),
         planned_ifft = plan_irfft(zeros(ComplexF64, Nx ÷ 2 + 1, Ny), Nx)
     )
 end
