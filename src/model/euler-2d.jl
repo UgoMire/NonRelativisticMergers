@@ -1,4 +1,4 @@
-function get_primitive_variables(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, u, ix, iy)
+function get_primitive_variables(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, u, ix, iy)
     (; γ) = prob.model
 
     ρ = u[1, ix, iy]
@@ -9,7 +9,7 @@ function get_primitive_variables(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, u
     return ρ, vx, vy, P
 end
 
-function get_conserved_variables(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P)
+function get_conserved_variables(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ, vx, vy, P)
     (; γ) = prob.model
 
     E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
@@ -17,7 +17,7 @@ function get_conserved_variables(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, �
     return (ρ, ρ * vx, ρ * vy, E)
 end
 
-function Fflux(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P)
+function Fflux(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ, vx, vy, P)
     (; γ) = prob.model
 
     E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
@@ -25,7 +25,7 @@ function Fflux(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P)
     return (ρ * vx, ρ * vx^2 + P, ρ * vx * vy, (E + P) * vx)
 end
 
-function Gflux(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P)
+function Gflux(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ, vx, vy, P)
     (; γ) = prob.model
 
     E = P / (γ - 1) + 1 / 2 * ρ * (vx^2 + vy^2)
@@ -33,7 +33,7 @@ function Gflux(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P)
     return (ρ * vy, ρ * vx * vy, ρ * vy^2 + P, (E + P) * vy)
 end
 
-function flux(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ, vx, vy, P, n)
+function flux(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ, vx, vy, P, n)
     (; γ) = prob.model
 
     q = vx * n.x + vy * n.y
@@ -60,7 +60,7 @@ function euler2d!(du, u, p, t)
     end
 end
 
-function setup_initial_state(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ0, vx0, vy0, P0)
+function setup_initial_state(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ0, vx0, vy0, P0)
     (; Nx, Ny) = prob.grid
     (; γ) = prob.model
 

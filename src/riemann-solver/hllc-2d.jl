@@ -103,7 +103,7 @@ function hllc_riemann_solver(
     return F_HLLC
 end
 
-function hllc_riemann_solver(prob::FDProblem{Grid2D, Euler, <:Any, HLLC}, wL, wR, n)
+function hllc_riemann_solver(prob::FDProblem{Grid2D, <:Any, <:Any, HLLC}, wL, wR, n)
     hllc_riemann_solver(prob, wL.ρ, wL.vx, wL.vy, wL.P, wR.ρ, wR.vx, wR.vy, wR.P, n)
 end
 
