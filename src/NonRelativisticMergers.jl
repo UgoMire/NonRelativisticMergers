@@ -50,6 +50,7 @@ include("model/euler-1d-gravity.jl")
 include("model/euler-2d.jl")
 include("model/euler-2d-gravity.jl")
 
-include("plot.jl")
+include("utils/plot-1d.jl")
+include("utils/plot-2d.jl")
 
 end
