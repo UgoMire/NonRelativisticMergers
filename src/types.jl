@@ -8,6 +8,10 @@ struct FDProblem{GD <: Grid, MD <: FDModel, RC <: Reconstructor, RS <: RiemannSo
     model::MD
     reconstructor::RC
     riemannsolver::RS
+
+    function FDProblem(grid::GD, model::MD) where {GD <: Grid, MD <: FDModel}
+        new{GD, MD, KT, HLLC}(grid, model, KT(), HLLC())
+    end
 end
 
 struct Grid1D <: Grid
