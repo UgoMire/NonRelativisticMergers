@@ -71,6 +71,7 @@ fluxstore = zeros(3, gd.Nx)
 p = (; prob, wstore, fluxstore)
 
 @btime NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
+@time NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
 ##
 @code_warntype NonRelativisticMergers.euler1d!(
     du,

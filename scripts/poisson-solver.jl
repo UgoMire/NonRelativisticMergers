@@ -19,15 +19,15 @@ prob = FDProblem(gd, EulerSelfGravity(), KT(), HLLC())
 ## Benchmarking the solver.
 cache = NonRelativisticMergers.setup_fft_cache(gd);
 
-@btime solve_poisson!(prob, ϕ, ρ, cache)
+@btime solve_poisson!(prob, ϕ, ρ, cache);
 
 ##
 @btime solve_poisson!(prob, ϕ, ρ, cache)
 
 ## Solve in 2d.
 (; xl, Nx, Δx, yl, Ny, Δy) = gd = Grid2D(;
-    xmin = -1, xmax = 1, Nx = 100, ymin = -1, ymax = 1, Ny = 100)
-prob = FDProblem(gd, EulerSelfGravity(; ϵ = 5, G = 1), KT(), HLLC())
+    xmin = -1, xmax = 1, Nx = 200, ymin = -1, ymax = 1, Ny = 200)
+prob = FDProblem(gd, EulerSelfGravity(; ϵ = 0, G = 1), KT(), HLLC())
 
 α = 1e2
 ρ = [exp(-α * (x^2 + y^2)) + exp(-α * ((x - 0.5)^2 + (y - 0.5)^2)) for x in xl, y in xl]
@@ -39,10 +39,15 @@ ax1 = Axis3(f[1, 1])
 surface!(ax1, xl, yl, ρ)
 ax2 = Axis3(f[1, 2])
 surface!(ax2, xl, yl, ϕ)
+# surface!(ax2, xl, yl, (x, y) -> -10 / (x^2 + y^2))
 f
 
 ## Benchmarking the solver.
-cache = NonRelativisticMergers.setup_fft_cache(gd);
+utest = zeros(3, Nx, Ny)
+ρ = utest[1, :, :]
 ϕ = zeros(Nx, Ny)
 
-@btime solve_poisson!(prob, ϕ, ρ, cache)
+cache = NonRelativisticMergers.setup_fft_cache(gd, ρ);
+
+@benchmark solve_poisson!(prob, ϕ, ρ, cache)
+@time solve_poisson!(prob, ϕ, ρ, cache)
