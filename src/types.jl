@@ -12,7 +12,7 @@ struct FDProblem{GD <: Grid, MD <: FDModel, RC <: Reconstructor, RS <: RiemannSo
     function FDProblem(grid::GD, model::MD, reconstructor::RC,
             riemannsolver::RS) where {
             GD <: Grid, MD <: FDModel, RC <: Reconstructor, RS <: RiemannSolver}
-        new{GD, MD, KT, HLLC}(grid, model, reconstructor, riemannsolver)
+        new{GD, MD, RC, RS}(grid, model, reconstructor, riemannsolver)
     end
 
     function FDProblem(grid::GD, model::MD) where {GD <: Grid, MD <: FDModel}
