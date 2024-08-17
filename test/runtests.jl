@@ -1,5 +1,6 @@
 using NonRelativisticMergers
 using Test
+using BenchmarkTools
 
 verbose = true
 
@@ -121,5 +122,42 @@ end
             @test flux2d[3] ≈ 0
             @test flux2d[4] ≈ flux1d[3]
         end
+    end
+end
+
+@testset verbose=verbose "1d Euler - ODE RHS is non-allocating" begin
+    @testset for model in [Euler(), EulerSelfGravity()]
+        prob = FDProblem(Grid1D(), model, KT(), HLLC())
+    end
+end
+
+@testset verbose=verbose "2d Euler - ODE RHS is non-allocating" for model in [
+    Euler(), EulerSelfGravity()]
+    import NonRelativisticMergers: euler2d!, euler2d_self_gravity!, setup_initial_state,
+                                   setup_finite_volume_cache, setup_fft_cache
+
+    (; xl, yl) = grid = Grid2D()
+
+    ρ0 = [1.0 for x in xl, y in yl]
+    vx0 = [0.0 for x in xl, y in yl]
+    vy0 = [0.0 for x in xl, y in yl]
+    P0 = [1.0 for x in xl, y in yl]
+
+    prob = FDProblem(grid, model, KT(), HLLC())
+    (; Nx, Ny) = prob.grid
+
+    u0 = setup_initial_state(prob, ρ0, vx0, vy0, P0)
+    du = copy(u0)
+    p = (;
+        prob,
+        fv_cache = setup_finite_volume_cache(prob),
+        fft_cache = setup_fft_cache(
+            prob.grid, @view u0[1, :, :])
+    )
+
+    if typeof(model) == EulerSelfGravity
+        @test (@ballocated euler2d_self_gravity!(du, u0, p, 0.0)) == 0
+    elseif typeof(model) == Euler
+        @test (@ballocated euler2d!(du, u0, p, 0.0)) == 0
     end
 end
