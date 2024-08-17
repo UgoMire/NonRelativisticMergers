@@ -1,6 +1,5 @@
 function setup_finite_volume_cache(
-        prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any}
-)
+        prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any})
     (; grid) = prob
     (; Nx, Ny) = grid
 
@@ -83,8 +82,8 @@ function solve(
 
     sol = OrdinaryDiffEq.solve(
         prob,
-        # Tsit5();
-        Vern6();
+        Tsit5();
+        # Vern6();
         # TRBDF2();
         # AutoTsit5(Rosenbrock23());
         # QNDF();

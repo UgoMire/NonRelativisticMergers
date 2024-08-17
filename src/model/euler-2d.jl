@@ -43,9 +43,20 @@ function flux(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ, vx, vy, P, n)
     return (ρ * q, ρ * vx * q + P * n.x, ρ * vy * q + P * n.y, (E + P) * q)
 end
 
+function setup_finite_volume_cache(prob::FDProblem{Grid2D, Euler, <:Any, <:Any})
+    (; Nx, Ny) = prob.grid
+
+    return (;
+        wstore = zeros(4, Nx, Ny, 4),
+        xfluxstore = zeros(4, Nx, Ny),
+        yfluxstore = zeros(4, Nx, Ny)
+    )
+end
+
 function euler2d!(du, u, p, t)
-    (; prob, wstore, xfluxstore, yfluxstore) = p
+    (; prob, fv_cache) = p
     (; xl, yl, Δx, Δy, Nx, Ny) = prob.grid
+    (; wstore, xfluxstore, yfluxstore) = fv_cache
 
     reconstruct!(prob, wstore, u)
 
@@ -75,15 +86,11 @@ function setup_initial_state(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ0, 
 end
 
 function solve(prob::FDProblem{Grid2D, Euler, <:Any, <:Any}, ρ0, vx0, vy0, P0, tspan)
-    (; Nx, Ny) = prob.grid
-
     u0 = setup_initial_state(prob, ρ0, vx0, vy0, P0)
 
-    wstore = zeros(4, Nx, Ny, 4)
-    xfluxstore = zeros(4, Nx, Ny)
-    yfluxstore = zeros(4, Nx, Ny)
+    fv_cache = setup_finite_volume_cache(prob)
 
-    prob = ODEProblem(euler2d!, u0, tspan, (; prob, wstore, xfluxstore, yfluxstore))
+    prob = ODEProblem(euler2d!, u0, tspan, (; prob, fv_cache))
 
     sol = OrdinaryDiffEq.solve(
         prob,
