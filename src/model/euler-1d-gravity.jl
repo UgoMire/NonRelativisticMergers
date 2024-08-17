@@ -1,3 +1,22 @@
+function setup_finite_volume_cache(
+        prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any}
+)
+    (; grid) = prob
+    (; Nx) = grid
+
+    wstore = DiffCache(zeros(3, Nx, 2))
+    fluxstore = DiffCache(zeros(3, Nx))
+    sourcestore = DiffCache(zeros(3, Nx))
+    potentialstore = DiffCache(zeros(Nx))
+
+    return (;
+        wstore,
+        fluxstore,
+        sourcestore,
+        potentialstore
+    )
+end
+
 function get_source!(
         prob::FDProblem{
             Grid1D, <:Union{EulerStaticGravity, EulerSelfGravity}, <:Any, <:Any},
@@ -81,7 +100,8 @@ function solve(
 end
 
 function euler1d_self_gravity!(du, u, p, t)
-    (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache) = p
+    (; prob, fv_cache, fft_cache) = p
+    (; wstore, fluxstore, sourcestore, potentialstore) = fv_cache
     (; Nx, Δx) = prob.grid
 
     wstore = get_tmp(wstore, u)
@@ -94,24 +114,20 @@ function euler1d_self_gravity!(du, u, p, t)
     solve_riemann_problem!(prob, fluxstore, wstore)
     get_source!(prob, sourcestore, u, potentialstore)
 
-    for i in 1:Nx
+    for j in 1:3, i in 1:Nx
         im = i == 1 ? Nx : i - 1
 
-        @. du[:, i] = -(fluxstore[:, i] - fluxstore[:, im]) / Δx + sourcestore[:, i]
+        du[j, i] = -(fluxstore[j, i] - fluxstore[j, im]) / Δx + sourcestore[j, i]
     end
 end
 
 function solve(
         prob::FDProblem{Grid1D, EulerSelfGravity, <:Any, <:Any}, ρ0l, v0l, P0l, tspan)
     (; grid) = prob
-    (; Nx) = grid
 
     u0 = setup_initial_state(prob, ρ0l, v0l, P0l)
 
-    wstore = DiffCache(zeros(3, Nx, 2))
-    fluxstore = DiffCache(zeros(3, Nx))
-    sourcestore = DiffCache(zeros(3, Nx))
-    potentialstore = DiffCache(zeros(Nx))
+    fv_cache = setup_finite_volume_cache(prob)
 
     fft_cache = setup_fft_cache(grid)
 
@@ -119,7 +135,7 @@ function solve(
         euler1d_self_gravity!,
         u0,
         tspan,
-        (; prob, wstore, fluxstore, sourcestore, potentialstore, fft_cache)
+        (; prob, fv_cache, fft_cache)
     )
 
     sol = OrdinaryDiffEq.solve(
