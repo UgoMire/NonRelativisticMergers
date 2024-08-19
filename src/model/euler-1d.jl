@@ -2,14 +2,14 @@
         prob::FDProblem{Grid1D, <:FDModel, <:Any, <:Any},
         u,
         i;
-        ρmin = 0.1
+        ρmin = 0.01
 )
     (; γ) = prob.model
 
     ρ = u[1, i]
 
-    # if ρ < ρmin
-    #     return ρmin, 0, ρmin
+    # if ρ < 1.2 * ρmin
+    #     return ρmin, 0, ρmin^γ
     # end
 
     v = u[2, i] / u[1, i]
@@ -68,7 +68,7 @@ function solve(prob::FDProblem{Grid1D, Euler, <:Any, <:Any}, ρ0l, v0l, p0l, tsp
     sol = OrdinaryDiffEq.solve(
         prob,
         Tsit5();
-        # TRBDF2();
+        # TRBDF2(; autodiff = AutoFiniteDiff());
         # AutoTsit5(Rosenbrock23());
         # QNDF();
         saveat = range(tspan[1], tspan[2]; length = 100),

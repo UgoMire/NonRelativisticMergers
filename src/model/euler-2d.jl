@@ -1,3 +1,14 @@
+function get_primitive_variables(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, u)
+    (; γ) = prob.model
+
+    ρ = u[1, :, :]
+    vx = u[2, :, :] ./ ρ
+    vy = u[3, :, :] ./ ρ
+    P = (γ - 1) * (u[4, :, :] - 1 / 2 * ρ .* (vx .^ 2 + vy .^ 2))
+
+    return ρ, vx, vy, P
+end
+
 function get_primitive_variables(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, u, ix, iy)
     (; γ) = prob.model
 
