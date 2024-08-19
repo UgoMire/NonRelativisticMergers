@@ -22,7 +22,7 @@ vy0 = [0.0 for x in gd.xl, y in gd.yl]
 # vy0 = [x / (2π * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 
 # P0 = [1.0 for x in gd.xl, y in gd.yl]
-P0 = [1.0 + 10 * exp(-30 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
+P0 = [1.0 + 20 * exp(-30 * (x^2 + y^2)) for x in gd.xl, y in gd.yl]
 # P0 = [1.0 + exp(-100 * x^2) for x in gd.xl, y in gd.yl]
 # P0 = [1.0 + exp(-10 * (x^2 + y^2 - 1)^2) for x in gd.xl, y in gd.yl]
 

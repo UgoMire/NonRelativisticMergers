@@ -4,7 +4,7 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid1D(; xmin = -1, xmax = 1, Nx = 500)
+gd = Grid1D(; xmin = -5, xmax = 5, Nx = 100)
 
 # reconstructor = Constant()
 # reconstructor = MUSCL()
@@ -14,13 +14,13 @@ reconstructor = KT()
 riemannsolver = HLLC()
 
 # model = Euler()
-model = EulerSelfGravity(; γ = 5 / 3, G = 1, ϵ = 10)
+model = EulerSelfGravity(; γ = 5 / 3, G = 1, ϵ = 4)
 
 prob = FDProblem(gd, model, reconstructor, riemannsolver)
 
 # ρ0l = ones(gd.Nx)
-ρ0l = 0.1 .+ map(x -> 1.8 * exp(-100 * (x - 0.0)^2), gd.xl)
-# ρ0l = 1 .+ map(x -> 1.5 * exp(-100 * (x - 2)^2) + exp(-100 * (x + 2)^2), gd.xl)
+# ρ0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.0)^2), gd.xl)
+ρ0l = 1 .+ map(x -> 1.5 * exp(-20 * (x - 2)^2) + exp(-20 * (x + 2)^2), gd.xl)
 # ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
@@ -28,9 +28,9 @@ v0l = zeros(gd.Nx)
 # v0l = ones(gd.Nx)
 # v0l = map(x -> 0.01 * exp(-100 * (x - 0.5)^2), gd.xl)
 
-# p0l = ones(gd.Nx)
+p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
-# p0l = 0.1 .+ map(x -> 3 * exp(-100 * (x - 0.0)^2), gd.xl)
+# p0l = 1 .+ map(x -> 0 * exp(-100 * (x - 0.0)^2), gd.xl)
 # p0l = 1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
 # p0l = 1 .+ map(x -> 1.5 * exp(-100 * (x - 2)^2) + exp(-100 * (x + 2)^2), gd.xl)
 # p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
@@ -40,6 +40,19 @@ tspan = (0, 10)
 sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
 plot_euler(prob, sol)
+
+## Benchmarking the RHS.
+u0 = NonRelativisticMergers.setup_initial_state(prob, ρ0l, v0l, p0l)
+du = similar(u0)
+
+fv_cache = NonRelativisticMergers.setup_finite_volume_cache(prob)
+
+fft_cache = NonRelativisticMergers.setup_fft_cache(gd)
+
+p = (; prob, fv_cache, fft_cache)
+
+@benchmark NonRelativisticMergers.euler1d_self_gravity!(du, u0, p, 0)
+# @time NonRelativisticMergers.euler1d_self_gravity!(du, u0, p, 0)
 
 ## Hydrostatic initial conditions.
 gd = Grid1D(; xmin = -3, xmax = 3, Nx = 500)

@@ -7,8 +7,8 @@ global_logger(TerminalLogger())
 gd = Grid1D(; xmin = -1, xmax = 2, Nx = 600)
 
 # ρ0l = ones(gd.Nx)
-# ρ0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.5)^2), gd.xl)
-ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
+# ρ0l = 0.002 .+ map(x -> 1 * exp(-100 * (x - 0.5)^2), gd.xl)
+ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.01 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
 # v0l = ones(gd.Nx)
@@ -17,10 +17,10 @@ v0l = zeros(gd.Nx)
 # p0l = ones(gd.Nx)
 # p0l = zeros(gd.Nx)
 # p0l = 0.1 .+ map(x -> 1.8 * exp(-100 * (x - 0.5)^2), gd.xl)
-# p0l = 1 .+ map(x -> 0.1 * exp(-100 * (x - 0.5)^2), gd.xl)
-p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
+# p0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.5)^2), gd.xl)
+p0l = [0.4 < x < 0.6 ? 0.8 : 0.02 for x in gd.xl]
 
-tspan = (0, 4.146)
+tspan = (0, 0.186)
 
 # reconstructor = Constant()
 # reconstructor = MUSCL()
@@ -29,10 +29,10 @@ reconstructor = KT()
 # riemannsolver = NaiveRS()
 riemannsolver = HLLC()
 
-# model = Euler(Constant(), NaiveRS(), ρ0l, v0l, p0l)
-# model = Euler(; reconst, riemannsolver)
+# model = EulerSelfGravity()
+model = Euler()
 
-prob = FDProblem(gd, Euler(), reconstructor, riemannsolver)
+prob = FDProblem(gd, model, reconstructor, riemannsolver)
 
 sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
@@ -70,8 +70,8 @@ fluxstore = zeros(3, gd.Nx)
 
 p = (; prob, wstore, fluxstore)
 
-@btime NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
-@time NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
+@benchmark NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
+# @time NonRelativisticMergers.euler1d!(du, u0, p, tspan[1])
 ##
 @code_warntype NonRelativisticMergers.euler1d!(
     du,
