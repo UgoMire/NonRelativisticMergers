@@ -148,17 +148,24 @@ function plot_euler2(
         prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any},
         sol;
         cmap = :lipari,
-        crange = Makie.MakieCore.Automatic(),
-        Na = 10)
-    (; xl, Nx, yl, Ny) = prob.grid
+        Na = 10
+)
+    (; xmin, xmax, Nx, xl, ymin, ymax, Ny, yl) = prob.grid
 
-    fig = Figure(; size = (900, 900))
+    fig = Figure(; size = (950, 900))
 
-    ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
-    ax2 = Axis(fig[1, 2]; title = "pressure", xlabel = "x", ylabel = "y")
-    ax3 = Axis(fig[2, 1]; title = "potential", xlabel = "x", ylabel = "y")
-    ax4 = Axis(fig[2, 2]; title = "internal energy", xlabel = "x", ylabel = "y")
-    sg = SliderGrid(fig[3, 1:2], (label = "t", range = range(sol.t[1], sol.t[end], 100)))
+    ax1 = Axis(fig[1, 1][1, 1]; title = "density", xlabel = "x", ylabel = "y")
+    ax2 = Axis(fig[1, 2][1, 1]; title = "pressure", xlabel = "x", ylabel = "y")
+    ax3 = Axis(fig[2, 1][1, 1]; title = "potential", xlabel = "x", ylabel = "y")
+    ax4 = Axis(fig[2, 2][1, 1]; title = "internal energy", xlabel = "x", ylabel = "y")
+    sg = SliderGrid(
+        fig[3, 1:2], (label = "t", range = range(sol.t[1] + 0.001, sol.t[end], 1000)))
+
+    for ax in fig.content
+        if ax isa Axis
+            limits!(ax, (xmin, xmax), (ymin, ymax))
+        end
+    end
 
     ρlift = Observable(zeros(Nx, Ny))
     Plift = Observable(zeros(Nx, Ny))
@@ -167,10 +174,16 @@ function plot_euler2(
     vxlift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
     vylift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
 
-    heatmap!(ax1, xl, yl, ρlift; colormap = cmap, colorrange = crange, interpolate = true)
-    heatmap!(ax2, xl, yl, Plift; colormap = cmap, interpolate = true)
-    heatmap!(ax3, xl, yl, ϕlift; colormap = cmap, interpolate = true)
-    heatmap!(ax4, xl, yl, elift; colormap = cmap, interpolate = true)
+    hmρ = heatmap!(ax1, xl, yl, ρlift; colormap = cmap, interpolate = true)
+    hmP = heatmap!(ax2, xl, yl, Plift; colormap = cmap, interpolate = true)
+    hmϕ = heatmap!(ax3, xl, yl, ϕlift; colormap = cmap, interpolate = true)
+    hme = heatmap!(ax4, xl, yl, elift; colormap = cmap, interpolate = true)
+
+    tickformat = labels -> [rpad((Printf.@sprintf "%.0f" label), 4) for label in labels]
+    Colorbar(fig[1, 1][1, 2], hmρ; tickformat)
+    Colorbar(fig[1, 2][1, 2], hmP; tickformat)
+    Colorbar(fig[2, 1][1, 2], hmϕ; tickformat)
+    Colorbar(fig[2, 2][1, 2], hme; tickformat)
 
     for ax in [ax1, ax2, ax3, ax4]
         arrows!(
@@ -181,7 +194,6 @@ function plot_euler2(
     tlift = sg.sliders[1].value
 
     on(tlift) do t
-        E = sol(t)[4, :, :]
         ρ, vx, vy, P = get_primitive_variables(prob, sol(t))
         ϕ = solve_poisson(prob, ρ)
 
@@ -193,7 +205,7 @@ function plot_euler2(
         vylift[] = vy[1:Na:end, 1:Na:end]
     end
 
-    tlift[] = sol.t[1]
+    tlift[] = sol.t[1] + 0.001
 
     return fig
 end

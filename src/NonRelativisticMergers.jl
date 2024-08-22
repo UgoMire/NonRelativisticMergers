@@ -7,6 +7,7 @@ using Makie
 using NonlinearSolve
 using OrdinaryDiffEq
 using PreallocationTools
+using Printf
 
 export FDProblem
 
