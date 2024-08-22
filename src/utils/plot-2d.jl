@@ -147,7 +147,7 @@ end
 function plot_euler2(
         prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any},
         sol;
-        cmap = :inferno,
+        cmap = :lipari,
         crange = Makie.MakieCore.Automatic(),
         Na = 10)
     (; xl, Nx, yl, Ny) = prob.grid
@@ -157,20 +157,20 @@ function plot_euler2(
     ax1 = Axis(fig[1, 1]; title = "density", xlabel = "x", ylabel = "y")
     ax2 = Axis(fig[1, 2]; title = "pressure", xlabel = "x", ylabel = "y")
     ax3 = Axis(fig[2, 1]; title = "potential", xlabel = "x", ylabel = "y")
-    ax4 = Axis(fig[2, 2]; title = "energy", xlabel = "x", ylabel = "y")
+    ax4 = Axis(fig[2, 2]; title = "internal energy", xlabel = "x", ylabel = "y")
     sg = SliderGrid(fig[3, 1:2], (label = "t", range = range(sol.t[1], sol.t[end], 100)))
 
     ρlift = Observable(zeros(Nx, Ny))
     Plift = Observable(zeros(Nx, Ny))
     ϕlift = Observable(zeros(Nx, Ny))
-    Elift = Observable(zeros(Nx, Ny))
+    elift = Observable(zeros(Nx, Ny))
     vxlift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
     vylift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
 
     heatmap!(ax1, xl, yl, ρlift; colormap = cmap, colorrange = crange, interpolate = true)
     heatmap!(ax2, xl, yl, Plift; colormap = cmap, interpolate = true)
     heatmap!(ax3, xl, yl, ϕlift; colormap = cmap, interpolate = true)
-    heatmap!(ax4, xl, yl, Elift; colormap = cmap, interpolate = true)
+    heatmap!(ax4, xl, yl, elift; colormap = cmap, interpolate = true)
 
     for ax in [ax1, ax2, ax3, ax4]
         arrows!(
@@ -188,7 +188,7 @@ function plot_euler2(
         ρlift[] = ρ
         Plift[] = P
         ϕlift[] = ϕ
-        Elift[] = E
+        elift[] = P ./ ρ ./ (prob.model.γ - 1)
         vxlift[] = vx[1:Na:end, 1:Na:end]
         vylift[] = vy[1:Na:end, 1:Na:end]
     end
