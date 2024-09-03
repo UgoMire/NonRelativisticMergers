@@ -2,18 +2,15 @@
         prob::FDProblem{Grid1D, <:FDModel, <:Any, <:Any},
         u,
         i;
-        ρmin = 0.01
 )
     (; γ) = prob.model
 
     ρ = u[1, i]
+    ρv = u[2, i]
+    E = u[3, i]
 
-    # if ρ < 1.2 * ρmin
-    #     return ρmin, 0, ρmin^γ
-    # end
-
-    v = u[2, i] / u[1, i]
-    p = (γ - 1) * (u[3, i] - 1 / 2 * u[1, i] * u[2, i]^2)
+    v = ρv / ρ
+    p = (γ - 1) * (E - 1 / 2 * ρ * v^2)
 
     return ρ, v, p
 end

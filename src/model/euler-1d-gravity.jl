@@ -30,10 +30,13 @@ function get_source!(
         ip = i == Nx ? 1 : i + 1
         im = i == 1 ? Nx : i - 1
 
+        ρ = u[1, i]
+        ρv = u[2, i]
+
         dϕdx = (ϕ[ip] - ϕ[im]) / 2Δx
 
-        sourcestore[2, i] = -u[1, i] * dϕdx
-        sourcestore[3, i] = -u[2, i] * dϕdx
+        sourcestore[2, i] = -ρ * dϕdx
+        sourcestore[3, i] = -ρv * dϕdx
     end
 end
 
