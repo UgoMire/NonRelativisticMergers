@@ -4,7 +4,7 @@ using Logging: global_logger
 using TerminalLoggers: TerminalLogger
 global_logger(TerminalLogger())
 
-gd = Grid1D(; xmin = -5, xmax = 5, Nx = 100)
+gd = Grid1D(; xmin = -5, xmax = 5, Nx = 2^8)
 
 # reconstructor = Constant()
 # reconstructor = MUSCL()
@@ -14,13 +14,13 @@ reconstructor = KT()
 riemannsolver = HLLC()
 
 # model = Euler()
-model = EulerSelfGravity(; γ = 5 / 3, G = 1, ϵ = 4)
+model = EulerSelfGravity(; γ = 5 / 3, G = 1, ϵ = 2)
 
 prob = FDProblem(gd, model, reconstructor, riemannsolver)
 
 # ρ0l = ones(gd.Nx)
 # ρ0l = 1 .+ map(x -> 1 * exp(-100 * (x - 0.0)^2), gd.xl)
-ρ0l = 1 .+ map(x -> 1.5 * exp(-20 * (x - 2)^2) + exp(-20 * (x + 2)^2), gd.xl)
+ρ0l = 1 .+ map(x -> 1.5 * exp(-15 * (x - 1.8)^2) + exp(-15 * (x + 1.8)^2), gd.xl)
 # ρ0l = [0.4 < x < 0.6 ? 0.5 : 0.05 for x in gd.xl]
 
 v0l = zeros(gd.Nx)
@@ -35,7 +35,7 @@ p0l = ones(gd.Nx)
 # p0l = 1 .+ map(x -> 1.5 * exp(-100 * (x - 2)^2) + exp(-100 * (x + 2)^2), gd.xl)
 # p0l = [0.4 < x < 0.6 ? 0.5 : 0.1 for x in gd.xl]
 
-tspan = (0, 10)
+tspan = (0, 4.8)
 
 sol = solve(prob, ρ0l, v0l, p0l, tspan)
 
