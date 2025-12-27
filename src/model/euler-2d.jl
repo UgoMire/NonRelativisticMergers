@@ -88,6 +88,8 @@ function setup_initial_state(prob::FDProblem{Grid2D, <:Any, <:Any, <:Any}, ρ0, 
 
     u0 = zeros(4, Nx, Ny)
 
+    @show size(u0[3, :, :]), size(vy0), size(ρ0)
+
     @. u0[1, :, :] = ρ0
     @. u0[2, :, :] = vx0 * ρ0
     @. u0[3, :, :] = vy0 * ρ0

@@ -1,8 +1,4 @@
-function plot_euler(
-        prob::FDProblem{Grid2D, Euler, <:Any, <:Any},
-        sol;
-        type = :heatmap
-)
+function plot_euler(prob::FDProblem{Grid2D,Euler,<:Any,<:Any}, sol; type = :heatmap)
     (; xl, yl) = prob.grid
 
     tspan = (sol.t[1], sol.t[end])
@@ -26,7 +22,7 @@ function plot_euler(
                    sol($tlift)[1, 1:Na:end, 1:Na:end]);
             arrowsize = 10,
             lengthscale = 0.5,
-            normalize = true
+            normalize = true,
         )
 
         ax4 = Axis(fig[1, 2]; title = "pressure", xlabel = "x")
@@ -39,7 +35,7 @@ function plot_euler(
                 1 / 2 * sol($tlift)[1, :, :] .*
                 (sol($tlift)[2, :, :] .^ 2 + sol($tlift)[3, :, :] .^ 2)
             ));
-            colormap = :lipari
+            colormap = :lipari,
         )
     elseif type == :surface
         sg = SliderGrid(fig[3, 1:2], (label = "t", range = range(tspan[1], tspan[2], 100)))
@@ -84,14 +80,18 @@ function add_main_layout!(fig, prob, sol; cmap = :lipari, Na = 10)
     vxlift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
     vylift = Observable(zeros(length(1:Na:Nx), length(1:Na:Ny)))
 
-    for (i, j, quantity, title) in [(1, 1, ρlift, "density"), (1, 2, Plift, "pressure"),
-        (2, 1, ϕlift, "potential"), (2, 2, elift, "internal energy")]
+    for (i, j, quantity, title) in [
+        (1, 1, ρlift, "density"),
+        (1, 2, Plift, "pressure"),
+        (2, 1, ϕlift, "potential"),
+        (2, 2, elift, "internal energy"),
+    ]
         ax = Axis(fig[i, j][1, 1]; title, xlabel = "x", ylabel = "y")
         limits!(ax, (xmin, xmax), (ymin, ymax))
 
         hm = heatmap!(ax, xl, yl, quantity; colormap = cmap, interpolate = false)
-        arrows!(ax, xl[1:Na:end], yl[1:Na:end], vxlift, vylift;
-            arrowsize = 6, lengthscale = 0.08, color = (:grey, 0.4), normalize = true)
+        # arrows!(ax, xl[1:Na:end], yl[1:Na:end], vxlift, vylift;
+        #     arrowsize = 6, lengthscale = 0.08, color = (:grey, 0.4), normalize = true)
 
         Colorbar(fig[i, j][1, 2], hm; tickformat)
     end
@@ -112,11 +112,11 @@ function add_main_layout!(fig, prob, sol; cmap = :lipari, Na = 10)
 end
 
 function plot_euler(
-        prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any},
-        sol;
-        cmap = :lipari,
-        Na = 10,
-        trange = nothing
+    prob::FDProblem{Grid2D,EulerSelfGravity,<:Any,<:Any},
+    sol;
+    cmap = :lipari,
+    Na = 10,
+    trange = nothing,
 )
     if isnothing(trange)
         trange = range(sol.t[1] + 0.001, sol.t[end], 100)
@@ -136,12 +136,12 @@ function plot_euler(
 end
 
 function record_euler(
-        prob::FDProblem{Grid2D, EulerSelfGravity, <:Any, <:Any},
-        sol,
-        filename;
-        cmap = :lipari,
-        Na = 10,
-        trange = nothing
+    prob::FDProblem{Grid2D,EulerSelfGravity,<:Any,<:Any},
+    sol,
+    filename;
+    cmap = :lipari,
+    Na = 10,
+    trange = nothing,
 )
     if isnothing(trange)
         trange = range(sol.t[1] + 0.001, sol.t[end], 100)
